@@ -414,10 +414,11 @@ def usage():
     print("Usage: 351dnsclient @<server:port> <domain-name> <record>")
     print("\tserver (Required) The IP address of the DNS server, in a.b.c.d format.")
     print("\tport (Optional) The UDP port number of the DNS server. Default value: 53.")
-    print("\tdomain-name (Required) The DNS record to query for, which can be either:")
-    print("\tA: A records")
-    print("\tDNSKEY: DNSKEY records")
-    print("\tDS: DS records")
+    print("\tdomain-name (Required) The name to query for.")
+    print("\trecord (Required) The DNS record to query for, which can be either:")
+    print("\t\tA: A records")
+    print("\t\tDNSKEY: DNSKEY records")
+    print("\t\tDS: DS records")
 
 
 if __name__ == "__main__":
