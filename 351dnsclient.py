@@ -411,11 +411,13 @@ def usage():
     Displays usage information
     :return: None
     """
-    print("Usage: [-ns|-mx] 351dns.py @<server:port> <name>")
-    print("\t[-ns|-mx] (Optional) To request NS or MX records. Default value: A.")
-    print("\tport (Optional) The UDP port number of the DNS server. Default value: 53.")
+    print("Usage: 351dnsclient @<server:port> <domain-name> <record>")
     print("\tserver (Required) The IP address of the DNS server, in a.b.c.d format.")
-    print("\tname (Required) The domain name to query for.")
+    print("\tport (Optional) The UDP port number of the DNS server. Default value: 53.")
+    print("\tdomain-name (Required) The DNS record to query for, which can be either:")
+    print("\tA: A records")
+    print("\tDNSKEY: DNSKEY records")
+    print("\tDS: DS records")
 
 
 if __name__ == "__main__":
