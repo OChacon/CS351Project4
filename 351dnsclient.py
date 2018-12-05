@@ -44,22 +44,13 @@ def send_query():
     args_len = len(args)
     server = ""
     name = ""
+    record = ""
     q_type = Q_TYPE_A
 
-    if args_len == 3:
+    if args_len == 4:
         server = args[1]
         name = args[2]
-    elif args_len == 4:
-        if args[1] == "-ns":
-            q_type = Q_TYPE_NS
-        elif args[1] == "-mx":
-            q_type = Q_TYPE_MX
-        else:
-            usage()
-            exit(0)
-
-        server = args[2]
-        name = args[3]
+        record = args[3]
     else:
         usage()
         exit(0)
@@ -69,6 +60,10 @@ def send_query():
     if server[0] == "@":
         server = server[1:]
     else:
+        usage()
+        exit(0)
+
+    if record != "A" and record != "DNSKEY" and record != "DS":
         usage()
         exit(0)
 
