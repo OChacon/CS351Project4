@@ -19,16 +19,40 @@ H_3 = "0001"
 H_4 = "0000"
 H_5 = "0000"
 H_6 = "0000"
-Q_TYPE_A = "0001"
-Q_TYPE_NS = "0002"
-Q_TYPE_MX = "000F"
+
+Q_TYPE_STRING = [
+    "A",
+    "DS",
+    "RRSIG",
+    "DNSKEY",
+    "NSEC3"
+]
+
+Q_TYPE_HEX = [
+    "0001",
+    "002B",
+    "002E",
+    "0030",
+    "0032"
+]
+
 Q_CLASS = "0001"
 Z_BYTE = "00"
 
+ANS_TYPE_INT = [
+    1,
+    43,
+    46,
+    48,
+    50
+]
+
 ANS_TYPE_A = 1
-ANS_TYPE_NS = 2
-ANS_TYPE_CNAME = 5
-ANS_TYPE_MX = 15
+ANS_TYPE_DS = 43
+ANS_TYPE_RRSIG = 46
+ANS_TYPE_DNSKEY = 48
+ANS_TYPE_NSEC3 = 50
+
 TIME_OUT_SEC = 5
 ANS_OFFSET = 20
 HEAD_LEN = 24
@@ -45,7 +69,7 @@ def send_query():
     server = ""
     name = ""
     record = ""
-    q_type = Q_TYPE_A
+    record_hex = ""
 
     if args_len == 4:
         server = args[1]
@@ -63,9 +87,12 @@ def send_query():
         usage()
         exit(0)
 
-    if record != "A" and record != "DNSKEY" and record != "DS":
+    if record.upper() not in Q_TYPE_STRING:
         usage()
         exit(0)
+    else:
+        record = record.upper()
+        record_hex = Q_TYPE_HEX[Q_TYPE_STRING.index(record)]
 
     if ":" in server:
         server_port = server.split(":")
@@ -93,7 +120,7 @@ def send_query():
     name_bin = name_bin + Z_BYTE
 
     header = (H_1 + H_2 + H_3 + H_4 + H_5 + H_6)
-    question = name_bin + q_type + Q_CLASS
+    question = name_bin + record_hex + Q_CLASS
     msg = binascii.unhexlify((header + question).replace("\n", ""))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -129,7 +156,7 @@ def send_query():
     elif erred_out:
         exit(0)
 
-    print_response(q_type, question, resp[0])
+    print_response(record, question, resp[0])
 
 
 def dump_packet(p):
@@ -234,7 +261,7 @@ def print_response(q_type, q, r):
         ans_len = int(hex_str[rd_index:rd_index + 4], 16)
         out_str = ""
 
-        if ans_type == ANS_TYPE_A and q_type == Q_TYPE_A:
+        if ans_type == ANS_TYPE_A:
             ip_1 = str(int(hex_str[rd_index + 4: rd_index + 6], 16))
             ip_2 = str(int(hex_str[rd_index + 6: rd_index + 8], 16))
             ip_3 = str(int(hex_str[rd_index + 8: rd_index + 10], 16))
@@ -246,16 +273,21 @@ def print_response(q_type, q, r):
         else:
             start_index = rd_index + 6
 
-            if ans_type == ANS_TYPE_NS and q_type == Q_TYPE_NS:
-                out_str += "NS   \t"
-            elif ans_type == ANS_TYPE_CNAME:
-                out_str += "CNAME\t"
-            elif ans_type == ANS_TYPE_MX and q_type == Q_TYPE_MX:
-                start_index = rd_index + 10
-                out_str += "MX\t"
-                out_str += str(int(hex_str[rd_index+6:rd_index+8], 16)) + "\t"
-            else:
-                should_print = False
+            print("ans type " + str(ans_type))
+
+            if ans_type in ANS_TYPE_INT:
+                out_str += Q_TYPE_STRING[ANS_TYPE_INT.index(ans_type)] + "\t"
+
+            # if ans_type == ANS_TYPE_DS:
+            #     out_str += "DS   \t"
+            # elif ans_type == ANS_TYPE_CNAME:
+            #     out_str += "CNAME\t"
+            # elif ans_type == ANS_TYPE_MX:
+            #     start_index = rd_index + 10
+            #     out_str += "MX\t"
+            #     out_str += str(int(hex_str[rd_index+6:rd_index+8], 16)) + "\t"
+            # else:
+            #     should_print = False
 
             end_index = rd_index + 2 * ans_len
             j = start_index
@@ -419,6 +451,7 @@ def usage():
     print("\t\tA: A records")
     print("\t\tDNSKEY: DNSKEY records")
     print("\t\tDS: DS records")
+    print("\t\tNSEC3: NSEC3 records")
 
 
 if __name__ == "__main__":
