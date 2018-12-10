@@ -15,10 +15,10 @@ import math
 
 H_1 = "736F"
 H_2 = "0100"
-H_3 = "0001"
-H_4 = "0000"
-H_5 = "0000"
-H_6 = "0000"
+H_3 = "0001"    # question count
+H_4 = "0000"    # answer rr count
+H_5 = "0000"    # authority rr count
+H_6 = "0001"    # additional rr count
 
 Q_TYPE_STRING = [
     "A",
@@ -36,8 +36,15 @@ Q_TYPE_HEX = [
     "0032"
 ]
 
+OPT_NAME = "0000"
+OPT_TYPE = "0029"
+OPT_CLASS = "F000"
+OPT_TTL = "00008000"
+OPT_RDLEN = "0000"
+
 Q_CLASS = "0001"
 Z_BYTE = "00"
+DO_FLAG = "0001"
 
 ANS_TYPE_INT = [
     1,
@@ -92,7 +99,9 @@ def send_query():
         exit(0)
     else:
         record = record.upper()
-        record_hex = Q_TYPE_HEX[Q_TYPE_STRING.index(record)]
+        # record_hex = Q_TYPE_HEX[Q_TYPE_STRING.index(record)]
+        # record_hex = OPT_TYPE
+        record_hex = "0019"
 
     if ":" in server:
         server_port = server.split(":")
@@ -121,7 +130,12 @@ def send_query():
 
     header = (H_1 + H_2 + H_3 + H_4 + H_5 + H_6)
     question = name_bin + record_hex + Q_CLASS
-    msg = binascii.unhexlify((header + question).replace("\n", ""))
+
+    # add_rr = ""
+    add_rr = OPT_NAME + OPT_TYPE + OPT_CLASS + OPT_TTL + OPT_RDLEN
+
+    msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
+    # msg = binascii.unhexlify((header + question).replace("\n", ""))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
@@ -212,6 +226,18 @@ def dump_packet(p):
     print()
 
 
+def dump_hex(h):
+    h_len = len(h)
+
+    for i in range(0, h_len):
+        print(h[i], end="")
+
+        if (i + 1) % 2 == 0:
+            print(" ", end="")
+
+    print()
+
+
 def print_response(q_type, q, r):
     """
     Prints server response to query
@@ -223,6 +249,11 @@ def print_response(q_type, q, r):
     hex_str = str(binascii.hexlify(r))[1:]
     q_len = len(q)
     head_bin_list = []
+
+    # print(r)
+    # print(hex_str)
+    dump_hex(hex_str[1:-1])
+    # dump_packet(r)
 
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
@@ -273,7 +304,7 @@ def print_response(q_type, q, r):
         else:
             start_index = rd_index + 6
 
-            print("ans type " + str(ans_type))
+            # print("ans type " + str(ans_type))
 
             if ans_type in ANS_TYPE_INT:
                 out_str += Q_TYPE_STRING[ANS_TYPE_INT.index(ans_type)] + "\t"
