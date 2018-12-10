@@ -38,13 +38,12 @@ Q_TYPE_HEX = [
 
 OPT_NAME = "0000"
 OPT_TYPE = "0029"
-OPT_CLASS = "F000"
+OPT_CLASS = "0500"
 OPT_TTL = "00008000"
 OPT_RDLEN = "0000"
 
 Q_CLASS = "0001"
 Z_BYTE = "00"
-DO_FLAG = "0001"
 
 ANS_TYPE_INT = [
     1,
@@ -99,9 +98,7 @@ def send_query():
         exit(0)
     else:
         record = record.upper()
-        # record_hex = Q_TYPE_HEX[Q_TYPE_STRING.index(record)]
-        # record_hex = OPT_TYPE
-        record_hex = "0019"
+        record_hex = Q_TYPE_HEX[Q_TYPE_STRING.index(record)]
 
     if ":" in server:
         server_port = server.split(":")
@@ -131,11 +128,9 @@ def send_query():
     header = (H_1 + H_2 + H_3 + H_4 + H_5 + H_6)
     question = name_bin + record_hex + Q_CLASS
 
-    # add_rr = ""
     add_rr = OPT_NAME + OPT_TYPE + OPT_CLASS + OPT_TTL + OPT_RDLEN
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
-    # msg = binascii.unhexlify((header + question).replace("\n", ""))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
@@ -170,7 +165,7 @@ def send_query():
     elif erred_out:
         exit(0)
 
-    print_response(record, question, resp[0])
+    print_response(record_hex, question, resp[0])
 
 
 def dump_packet(p):
@@ -250,10 +245,7 @@ def print_response(q_type, q, r):
     q_len = len(q)
     head_bin_list = []
 
-    # print(r)
-    # print(hex_str)
     dump_hex(hex_str[1:-1])
-    # dump_packet(r)
 
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
@@ -281,66 +273,89 @@ def print_response(q_type, q, r):
 
     for i in range(0, ans_count + auth_count + add_count):
         should_print = True
-        ans_type = int(hex_str[ans_index + 4:ans_index + 8], 16)
+        ans_type = hex_str[ans_index + 4:ans_index + 8].upper()
 
-        byte_1 = hex_to_bin_list(hex_str[ans_index:ans_index + 2])[0][2:]
-        byte_2 = hex_to_bin_list(hex_str[ans_index + 2:ans_index + 4])[0]
-        d_name_offset = (int(byte_1 + byte_2, 2) - 12) * 2
-        d = get_name_by_offset(q + hex_str[1:], d_name_offset)
+        if ans_type != q_type:
+            print("Skipping resource record " + str(i) + ". Type does not match query type.")
+            continue
+
+        # byte_1 = hex_to_bin_list(hex_str[ans_index:ans_index + 2])[0][2:]
+        # byte_2 = hex_to_bin_list(hex_str[ans_index + 2:ans_index + 4])[0]
+        # d_name_offset = (int(byte_1 + byte_2, 2) - 12) * 2
+        # d = get_name_by_offset(q + hex_str[1:], d_name_offset)
 
         rd_index = ans_index + ANS_OFFSET
-        ans_len = int(hex_str[rd_index:rd_index + 4], 16)
+        start_index = rd_index + 4
+        ans_len = int(hex_str[rd_index:start_index], 16)
         out_str = ""
 
-        if ans_type == ANS_TYPE_A:
-            ip_1 = str(int(hex_str[rd_index + 4: rd_index + 6], 16))
-            ip_2 = str(int(hex_str[rd_index + 6: rd_index + 8], 16))
-            ip_3 = str(int(hex_str[rd_index + 8: rd_index + 10], 16))
-            ip_4 = str(int(hex_str[rd_index + 10: rd_index + 12], 16))
-            ip_full = ip_1 + "." + ip_2 + "." + ip_3 + "." + ip_4
-            out_str += "IP   \t" + ip_full
+        # print("query type ", str(q_type))
+        # print("ans type ", str(ans_type))
+        # print("ans length ", str(ans_len))
+        # print("First 2 hex of answer ", hex_str[start_index:start_index + 2])
 
-            ans_index = rd_index + 12
+        if ans_type in Q_TYPE_HEX:
+            out_str += Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t"
         else:
-            start_index = rd_index + 6
+            should_print = False
 
-            # print("ans type " + str(ans_type))
+        end_index = start_index + 2 * ans_len
 
-            if ans_type in ANS_TYPE_INT:
-                out_str += Q_TYPE_STRING[ANS_TYPE_INT.index(ans_type)] + "\t"
+        ans_hex = hex_str[start_index:end_index]
 
-            # if ans_type == ANS_TYPE_DS:
-            #     out_str += "DS   \t"
-            # elif ans_type == ANS_TYPE_CNAME:
-            #     out_str += "CNAME\t"
-            # elif ans_type == ANS_TYPE_MX:
-            #     start_index = rd_index + 10
-            #     out_str += "MX\t"
-            #     out_str += str(int(hex_str[rd_index+6:rd_index+8], 16)) + "\t"
-            # else:
-            #     should_print = False
+        ans_bin = hex_to_bin_list(ans_hex)
 
-            end_index = rd_index + 2 * ans_len
-            j = start_index
+        ans_as_bin_str = arr_to_str(ans_bin)
 
-            while j < end_index:
-                h = hex_str[j:j + 2]
+        key_tag = int(ans_as_bin_str[0:16], 2)
+        alg = int(ans_as_bin_str[16:24], 2)
+        digest_type = int(ans_as_bin_str[24:32], 2)
+        digest_bin = ""
 
-                if 0 <= int(h, 16) <= 31:
-                    out_str += "."
-                    j += 2
-                else:
-                    out_str += chr(int(h, 16))
-                    j += 2
+        if digest_type == 1:
+            digest_bin = ans_as_bin_str[32:32 * 8]
+        elif digest_type == 2:
+            digest_bin = ans_as_bin_str[32:20 * 8]
+        else:
+            print("Skipping resource record " + str(i) + ". Unrecognized digest type.")
+            continue
 
-            out_str += "." + d
-            ans_index = rd_index + 4 + 2 * ans_len
+        print("key tag: " + str(key_tag))
+        print("algorithm: " + str(alg))
+        print("digest type: " + str(digest_type))
+        print("digest: " + str(digest_bin))
+        print()
 
-        if should_print:
-            if (i < ans_count or i >= int(ans_count) + int(auth_count)) and is_auth != 1:
-                print(out_str + "\t <nonauth>")
-            else:
-                print(out_str + "\t <auth>")
+        # print("ans bin")
+        #
+        # for ab in ans_bin:
+        #     print(ab)
+        #
+        # print()
+
+        # print("answer hex " + ans_hex)
+
+        # j = start_index
+        #
+        # while j < end_index:
+        #     h = hex_str[j:j + 2]
+        #
+        #     if 0 <= int(h, 16) <= 31:
+        #         out_str += "."
+        #         j += 2
+        #     else:
+        #         out_str += chr(int(h, 16))
+        #         j += 2
+
+        # out_str += "." + d
+        # ans_index = rd_index + 4 + 2 * ans_len
+        ans_index = end_index
+
+        # if should_print:
+        #     if (i < ans_count or i >= int(ans_count) + int(auth_count)) and is_auth != 1:
+        #         print(out_str + "\t <nonauth>")
+        #     else:
+        #         print(out_str + "\t <auth>")
 
 
 def int_to_hex(i):
@@ -406,6 +421,15 @@ def hex_to_bin_list(h_str):
         bin_list_full.append(b)
 
     return bin_list_full
+
+
+def arr_to_str(arr):
+    the_string = ""
+
+    for a in arr:
+        the_string = the_string + a
+
+    return the_string
 
 
 def get_name_by_offset(hex_str, offset):

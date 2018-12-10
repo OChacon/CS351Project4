@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="41931337-d988-4913-9e9e-a55b9c138790" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/351dnsclient.py" afterPath="$PROJECT_DIR$/351dnsclient.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,8 +16,8 @@
       <file leaf-file-name="351dnsclient.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/351dnsclient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="38" column="16" lean-forward="false" selection-start-line="38" selection-start-column="16" selection-end-line="38" selection-end-column="16" />
+            <state relative-caret-position="328">
+              <caret line="317" column="49" lean-forward="false" selection-start-line="317" selection-start-column="49" selection-end-line="317" selection-end-column="49" />
               <folding>
                 <element signature="e#84#99#0" expanded="true" />
               </folding>
@@ -31,6 +30,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>print_response</find>
+      <find>is_dns_response</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -45,7 +45,7 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="y" value="-5" />
-    <option name="width" value="902" />
+    <option name="width" value="957" />
     <option name="height" value="1046" />
   </component>
   <component name="ProjectView">
@@ -107,7 +107,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="CS351Project4" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/351dnsclient.py" />
-      <option name="PARAMETERS" value="@8.8.8.8 google.com rrsig" />
+      <option name="PARAMETERS" value="@8.8.8.8 example.com ds" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -135,7 +135,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="-5" width="902" height="1046" extended-state="0" />
+    <frame x="0" y="-5" width="957" height="1046" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.17153284" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -143,7 +143,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2818864" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.227224" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -187,8 +187,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/351dnsclient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="38" column="16" lean-forward="false" selection-start-line="38" selection-start-column="16" selection-end-line="38" selection-end-column="16" />
+        <state relative-caret-position="328">
+          <caret line="317" column="49" lean-forward="false" selection-start-line="317" selection-start-column="49" selection-end-line="317" selection-end-column="49" />
           <folding>
             <element signature="e#84#99#0" expanded="true" />
           </folding>
