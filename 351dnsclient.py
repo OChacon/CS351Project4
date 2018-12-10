@@ -307,24 +307,32 @@ def print_response(q_type, q, r):
 
         ans_as_bin_str = arr_to_str(ans_bin)
 
-        key_tag = int(ans_as_bin_str[0:16], 2)
-        alg = int(ans_as_bin_str[16:24], 2)
-        digest_type = int(ans_as_bin_str[24:32], 2)
-        digest_bin = ""
+        if ans_type == Q_TYPE_HEX[1]:
+            key_tag = int(ans_as_bin_str[0:16], 2)
+            alg = int(ans_as_bin_str[16:24], 2)
+            digest_type = int(ans_as_bin_str[24:32], 2)
 
-        if digest_type == 1:
-            digest_bin = ans_as_bin_str[32:32 * 8]
-        elif digest_type == 2:
-            digest_bin = ans_as_bin_str[32:20 * 8]
-        else:
-            print("Skipping resource record " + str(i) + ". Unrecognized digest type.")
-            continue
+            if digest_type == 1:
+                digest_bin = ans_as_bin_str[32:20 * 8 + 32]
+            elif digest_type == 2:
+                digest_bin = ans_as_bin_str[32:32 * 8 + 32]
+            else:
+                print("Skipping resource record " + str(i) + ". Unrecognized digest type.")
+                continue
 
-        print("key tag: " + str(key_tag))
-        print("algorithm: " + str(alg))
-        print("digest type: " + str(digest_type))
-        print("digest: " + str(digest_bin))
-        print()
+            digest_hex_str = bin_str_to_hex_str(digest_bin)
+
+            print("key tag: " + str(key_tag))
+            print("algorithm: " + str(alg))
+            print("digest type: " + str(digest_type))
+            print("digest: " + digest_hex_str)
+            print()
+        elif ans_type == Q_TYPE_HEX[2]:
+            pass
+        elif ans_type == Q_TYPE_HEX[3]:
+            pass
+        elif ans_type == Q_TYPE_HEX[4]:
+            pass
 
         # print("ans bin")
         #
@@ -421,6 +429,22 @@ def hex_to_bin_list(h_str):
         bin_list_full.append(b)
 
     return bin_list_full
+
+
+def bin_str_to_hex_str(b_str):
+    b_len = len(b_str)
+    byte_count = int(b_len / 8)
+    hex_str = ""
+
+    if b_len % 8 != 0:
+        return ""
+
+    for i in range(0, byte_count):
+        start = i * 8
+        hex_int = hex(int(b_str[start:start + 8], 2))
+        hex_str = hex_str + str(hex_int[2:]) + " "
+
+    return hex_str
 
 
 def arr_to_str(arr):
