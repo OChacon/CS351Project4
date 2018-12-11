@@ -11,6 +11,7 @@ import sys
 import socket
 import select
 import math
+import base64
 
 
 H_1 = "736F"
@@ -360,7 +361,8 @@ def parse_response(q, r):
                 "sig_inc": str(sig_inc),
                 "key_tag": str(key_tag),
                 "sig_name": sig_name,
-                "signature": sig
+                "signature": sig,
+                "sig_as_base64": str(base64.b64encode(bytes(sig, "utf-8")))[2:-1]
             })
 
             # print("Type covered: " + str(type_covered))
@@ -558,7 +560,8 @@ def get_name_hex_and_next_index(bin_str):
             if len(next_hex) == 1:
                 next_hex = "0" + next_hex
 
-            hex_str = hex_str + next_hex + " "
+            # hex_str = hex_str + next_hex + " "
+            hex_str = hex_str + chr(int(next_hex, 16))
 
         next_bin = bin_str[final_index:final_index + 8]
 
@@ -569,6 +572,7 @@ def get_name_hex_and_next_index(bin_str):
                 keep_going = False
                 final_index = final_index + 8
             else:
+                hex_str = hex_str + "."
                 start_index = final_index + 8
                 final_index = start_index + word_len * 8
         else:
