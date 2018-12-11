@@ -21,6 +21,12 @@ H_4 = "0000"    # answer rr count
 H_5 = "0000"    # authority rr count
 H_6 = "0001"    # additional rr count
 
+Q_TYPE_VALID_INPUTS = [
+    "A",
+    "DS",
+    "DNSKEY"
+]
+
 Q_TYPE_STRING = [
     "A",
     "DS",
@@ -97,7 +103,7 @@ def send_query():
         usage()
         exit(0)
 
-    if record.upper() not in Q_TYPE_STRING:
+    if record.upper() not in Q_TYPE_VALID_INPUTS:
         usage()
         exit(0)
     else:
@@ -170,7 +176,7 @@ def send_query():
         exit(0)
 
     parsed_response = parse_response(question, resp[0])
-    print()
+    print_results(record, parsed_response)
 
 
 def dump_packet(p):
@@ -197,11 +203,6 @@ def dump_packet(p):
             s_list.append(chr(int(wrd, 16)))
         else:
             s_list.append(".")
-
-        # if 0 <= int(wrd, 16) <= 31:
-        #     s_list.append(".")
-        # else:
-        #     s_list.append(chr(int(wrd, 16)))
 
     wrd_cnt = len(h_list)
     lines_cnt = int(math.floor(wrd_cnt / 16) + 1)
@@ -311,7 +312,18 @@ def parse_response(q, r):
         ans_bin = hex_to_bin_list(ans_hex)
         ans_as_bin_str = arr_to_str(ans_bin)
 
-        if ans_type == Q_TYPE_HEX[1]:
+        if ans_type == Q_TYPE_HEX[0]:
+            ip_1 = str(int(hex_str[rd_index + 4: rd_index + 6], 16))
+            ip_2 = str(int(hex_str[rd_index + 6: rd_index + 8], 16))
+            ip_3 = str(int(hex_str[rd_index + 8: rd_index + 10], 16))
+            ip_4 = str(int(hex_str[rd_index + 10: rd_index + 12], 16))
+            ip_full = ip_1 + "." + ip_2 + "." + ip_3 + "." + ip_4
+
+            parsed_response.append({
+                "record_type": record_type,
+                "ip": ip_full
+            })
+        elif ans_type == Q_TYPE_HEX[1]:
             # DS Record
             key_tag = int(ans_as_bin_str[0:16], 2)
             alg = int(ans_as_bin_str[16:24], 2)
@@ -645,6 +657,18 @@ def is_dns_response(s):
         return False
     else:
         return True
+
+
+def print_results(q_type, results):
+    if q_type == Q_TYPE_VALID_INPUTS[0]:
+        for r in results:
+            print("IP\t", end="")
+            print(r.ip + "\t", end="")
+
+    elif q_type == Q_TYPE_VALID_INPUTS[1]:
+        pass
+    elif q_type == Q_TYPE_VALID_INPUTS[2]:
+        pass
 
 
 def print_err(e):
