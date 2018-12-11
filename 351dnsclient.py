@@ -177,7 +177,7 @@ def send_query():
         exit(0)
 
     parsed_response = parse_response(question, resp[0])
-    key_validation(parsed_response)
+    # key_validation(parsed_response)
     # get a response for com
     # parse that
     # key validate it
@@ -185,7 +185,7 @@ def send_query():
     # parse that
     # key validate that
     # if that's good, we good. Print out all that shit
-    print()
+    print_results(name, record, parsed_response)
 
 
 def key_validation(pr):
@@ -703,12 +703,33 @@ def is_dns_response(s):
         return True
 
 
-def print_results(q_type, results):
+def print_results(url, q_type, results):
+    url_str = url + "\t\t"
+
     if q_type == Q_TYPE_VALID_INPUTS[0]:
         for r in results:
-            print("IP\t", end="")
-            print(r.ip + "\t", end="")
+            if r["record_type"] == Q_TYPE_STRING[0]:
+                print(url_str, end="")
+                print("IN A " + r["ip"])
+            elif r["record_type"] == Q_TYPE_STRING[2]:
+                print(url_str, end="")
+                print("IN RRSIG ", end="")
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
+                print(r["labels"] + " ", end="")
+                print(r["ttl"] + " (")
 
+                b64_len = len(r["sig_as_base64"])
+
+                if b64_len < 45:
+                    print("\t\t\t\t\t" + r["sig_as_base64"])
+                else:
+                    print("\t\t\t\t\t" + r["sig_as_base64"][:44])
+                    print("\t\t\t\t\t[ ... ]")
+
+                    if b64_len > 88:
+                        print("\t\t\t\t\t" + r["sig_as_base64"][b64_len - 44:] + " )")
+                    else:
+                        print("\t\t\t\t\t" + r["sig_as_base64"][44:] + " )")
     elif q_type == Q_TYPE_VALID_INPUTS[1]:
         pass
     elif q_type == Q_TYPE_VALID_INPUTS[2]:
