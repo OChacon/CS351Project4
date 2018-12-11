@@ -36,7 +36,7 @@ Q_TYPE_HEX = [
     "0032"
 ]
 
-OPT_NAME = "0000"
+OPT_NAME = "010000"
 OPT_TYPE = "0029"
 OPT_CLASS = "0500"
 OPT_TTL = "00008000"
@@ -131,6 +131,7 @@ def send_query():
     add_rr = OPT_NAME + OPT_TYPE + OPT_CLASS + OPT_TTL + OPT_RDLEN
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
+    # msg = binascii.unhexlify((header + question).replace("\n", ""))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
@@ -241,11 +242,13 @@ def print_response(q_type, q, r):
     :param r: response string
     :return: None
     """
-    hex_str = str(binascii.hexlify(r))[1:]
+    hex_str = str(binascii.hexlify(r))[1:-1]
     q_len = len(q)
     head_bin_list = []
 
-    dump_hex(hex_str[1:-1])
+    dump_hex(hex_str[1:])
+
+    print("hex str: " + hex_str)
 
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
@@ -272,22 +275,15 @@ def print_response(q_type, q, r):
     ans_index = HEAD_LEN + q_len + 1
 
     for i in range(0, ans_count + auth_count + add_count):
-        should_print = True
         ans_type = hex_str[ans_index + 4:ans_index + 8].upper()
 
-        if ans_type != q_type:
-            print("Skipping resource record " + str(i) + ". Type does not match query type.")
-            continue
-
-        # byte_1 = hex_to_bin_list(hex_str[ans_index:ans_index + 2])[0][2:]
-        # byte_2 = hex_to_bin_list(hex_str[ans_index + 2:ans_index + 4])[0]
-        # d_name_offset = (int(byte_1 + byte_2, 2) - 12) * 2
-        # d = get_name_by_offset(q + hex_str[1:], d_name_offset)
+        if ans_type not in Q_TYPE_HEX:
+            # print("Skipping resource record " + str(i) + ". Type does not match query type.")
+            print("Resource record type hex: " + ans_type)
 
         rd_index = ans_index + ANS_OFFSET
         start_index = rd_index + 4
         ans_len = int(hex_str[rd_index:start_index], 16)
-        out_str = ""
 
         # print("query type ", str(q_type))
         # print("ans type ", str(ans_type))
@@ -295,16 +291,13 @@ def print_response(q_type, q, r):
         # print("First 2 hex of answer ", hex_str[start_index:start_index + 2])
 
         if ans_type in Q_TYPE_HEX:
-            out_str += Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t"
-        else:
-            should_print = False
+            print("Resource record type " + Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t")
+        # else:
+        #     continue
 
         end_index = start_index + 2 * ans_len
-
         ans_hex = hex_str[start_index:end_index]
-
         ans_bin = hex_to_bin_list(ans_hex)
-
         ans_as_bin_str = arr_to_str(ans_bin)
 
         if ans_type == Q_TYPE_HEX[1]:
@@ -322,17 +315,56 @@ def print_response(q_type, q, r):
 
             digest_hex_str = bin_str_to_hex_str(digest_bin)
 
-            print("key tag: " + str(key_tag))
-            print("algorithm: " + str(alg))
-            print("digest type: " + str(digest_type))
-            print("digest: " + digest_hex_str)
+            print("Key tag: " + str(key_tag))
+            print("Algorithm: " + str(alg))
+            print("Digest type: " + str(digest_type))
+            print("Digest: " + digest_hex_str)
             print()
         elif ans_type == Q_TYPE_HEX[2]:
-            pass
+            type_covered = int(ans_as_bin_str[0:16], 2)
+            alg = int(ans_as_bin_str[16:24], 2)
+            labels = int(ans_as_bin_str[24:32], 2)
+            ttl = int(ans_as_bin_str[32:64], 2)
+            sig_exp = int(ans_as_bin_str[64:128], 2)
+            sig_inc = int(ans_as_bin_str[128:192], 2)
+            key_tag = int(ans_as_bin_str[192:208], 2)
+            sig_name_and_sig = bin_str_to_hex_str(ans_as_bin_str[208:])
+
+            print("Type covered: " + str(type_covered))
+            print("Algorithm: " + str(alg))
+            print("Labels: " + str(labels))
+            print("TTL: " + str(ttl))
+            print("Signature expiration: " + str(sig_exp))
+            print("Signature inception: " + str(sig_inc))
+            print("Key tag: " + str(key_tag))
+            print("ans_as_bin_str length: " + str(len(ans_as_bin_str)))
+            # print("Signature name and signature as binary: " + ans_as_bin_str[212:])
+            print("Signature name and signature: " + sig_name_and_sig)
+            print()
         elif ans_type == Q_TYPE_HEX[3]:
-            pass
+            flags = ans_as_bin_str[0:16]
+            protocol = int(ans_as_bin_str[16:24], 2)
+            alg = int(ans_as_bin_str[24:32], 2)
+            pub_key = bin_str_to_hex_str(ans_as_bin_str[32:])
+
+            print("Flags: " + flags)
+            print("Protocol: " + str(protocol))
+            print("Algorithm: " + str(alg))
+            print("Public key octet count: " + str(int(len(ans_as_bin_str) - 32) / 8))
+            print("Public key: " + str(pub_key))
+            print()
         elif ans_type == Q_TYPE_HEX[4]:
+            print("Answer hex: " + ans_hex)
+            print()
+        else:
             pass
+            # print("Binary string length: " + str(len(ans_bin)))
+            # print("Answer as bin string: ")
+            #
+            # for ab in ans_bin:
+            #     print(ab)
+            #
+            # print()
 
         # print("ans bin")
         #
@@ -437,12 +469,18 @@ def bin_str_to_hex_str(b_str):
     hex_str = ""
 
     if b_len % 8 != 0:
+        print("Length of binary sent to bin_str_to_hex_str is " + str(b_len))
         return ""
 
     for i in range(0, byte_count):
         start = i * 8
         hex_int = hex(int(b_str[start:start + 8], 2))
-        hex_str = hex_str + str(hex_int[2:]) + " "
+        hex_str_part = str(hex_int[2:])
+
+        if len(hex_str_part) == 1:
+            hex_str_part = "0" + hex_str_part
+
+        hex_str = hex_str + hex_str_part + " "
 
     return hex_str
 
