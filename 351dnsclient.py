@@ -164,9 +164,16 @@ def main():
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
-    response = send_query(server, msg, port, question)
-    parsed_response = parse_response(response[0], response[1])
-    key_validation(parsed_response)
+    ds_response = send_query(server, msg, port, question)
+
+    record_hex = Q_TYPE_HEX[4]
+    question = name_bin + record_hex + Q_CLASS
+    msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
+    dnskey_response = send_query(server, msg, port, question)
+
+    ds_parsed_response = parse_response(ds_response[0], ds_response[1])
+    dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
+    key_validation(ds_parsed_response, dnskey_parsed_response)
     # get a response for com
     # parse that
     # key validate it
@@ -174,7 +181,7 @@ def main():
     # parse that
     # key validate that
     # if that's good, we good. Print out all that shit
-    print_results(name, record, parsed_response)
+    print_results(name, record, ds_parsed_response)
 
 
 def send_query(server, msg, port, question):
@@ -214,50 +221,65 @@ def send_query(server, msg, port, question):
     return question, resp[0]
 
 
-def key_validation(pr):
+def key_validation(ds_pr, dnskey_pr):
     """
     Takes a response, checks the keys to validate them.
     Also checks to see if the sig is still valid with it's expiration dates.
-    :param pr: the parsed response
+    :param ds_pr: the parsed response
+    :param dnskey_pr: the dnskey parsed response
     :return: True if the response is validated,
     prints error message otherwise.
     """
-    h = []
+    not_expired = False
     verified = False
-    for r in pr:
+    dnskey_digest = []
+    i = 0
+    while dnskey_pr[i]['record_type'] != 'RRSIG':
+        i = i + 1
+    owner_name = str_to_hex(dnskey_pr[i]['sig_name'])
+    for r in dnskey_pr:
+        if r['record_type'] == 'DNSKEY':
+            # build each RDATA
+            f = str_to_hex(r['flags'])
+            p = str_to_hex(r['protocol'])
+            a = str_to_hex(r['algorithm'])
+            p_key = r['public_key'].split(' ')
+            pk = ''
+            for x in p_key:
+                pk = pk + x
+            rdata = f + p + a + pk
+            # make the digest and store it
+            d = owner_name + rdata
+            if r['algorithm'] == '8':
+                dnskey_digest.append(hashlib.sha3_256(d.encode('utf-8')).hexdigest())
+            elif r['algorithm'] == '10':
+                dnskey_digest.append(hashlib.sha3_512(d.encode('utf-8')).hexdigest())
+            elif r['algorithm'] == '5':
+                dnskey_digest.append(hashlib.sha1(d.encode('utf-8')).hexdigest())
+
+    for r in ds_pr:
         if r['record_type'] == 'RRSIG':
             # Check the sig_inc and sig_exp to make sure it's still valid
             cur_time = time.time()
             if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
-                # Time's still good, check keys
-                sig = r['signature'].split(' ')
-                s = ''
-                for x in sig:
-                    s = s + x
-                if r['algorithm'] == '8':
-                    h.append(hashlib.sha3_256(s.encode('utf-8')).hexdigest())
-                elif r['algorithm'] == '10':
-                    h.append(hashlib.sha3_512(s.encode('utf-8')).hexdigest())
-                elif r['algorithm'] == '5':
-                    h.append(hashlib.sha1(s.encode('utf-8')).hexdigest())
-            else:
-                # The RRSIG's expired
-                print("ERROR\tEXPIRED-RRSIG")
-                exit(0)
+                not_expired = True
+
     # check the hash and compare to all the DS record's digest
-    for r in pr:
+    for r in ds_pr:
         if r['record_type'] == "DS":
             dig = r['digest'].split(' ')
             d = ''
             for x in dig:
                 d = d + x
-            for x in h:
-                if x == d:
+            for e in dnskey_digest:
+                if e == d:
                     verified = True
-    if verified:
-        print("verified")
-    else:
+    if verified and not_expired:
+        print("verified and not expired")
+    elif verified and not not_expired:
         # Print out error with error type as found above (invalid-rrsig, etc)
+        print("expired")
+    elif not_expired and not verified:
         print("not verified")
 
 
