@@ -169,7 +169,8 @@ def send_query():
     elif erred_out:
         exit(0)
 
-    print_response(record_hex, question, resp[0])
+    parsed_response = parse_response(record_hex, question, resp[0])
+    print()
 
 
 def dump_packet(p):
@@ -237,7 +238,7 @@ def dump_hex(h):
     print()
 
 
-def print_response(q_type, q, r):
+def parse_response(q_type, q, r):
     """
     Prints server response to query
     :param q_type: question type sent in query
@@ -245,11 +246,12 @@ def print_response(q_type, q, r):
     :param r: response string
     :return: None
     """
+    parsed_response = []
     hex_str = str(binascii.hexlify(r))[1:-1]
     q_len = len(q)
     head_bin_list = []
 
-    dump_hex(hex_str[1:])
+    # dump_hex(hex_str[1:])
 
     # print("hex str: " + hex_str)
 
@@ -283,9 +285,11 @@ def print_response(q_type, q, r):
         ans_len = int(hex_str[rd_index:start_index], 16)
 
         if ans_type in Q_TYPE_HEX:
-            print("Resource record type " + Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t")
+            record_type = Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)]
+            # print("Resource record type " + record_type + "\t")
         else:
-            print("Resource record type hex: " + ans_type)
+            record_type = ""
+            # print("Resource record type hex: " + ans_type)
 
         end_index = start_index + 2 * ans_len
         ans_hex = hex_str[start_index:end_index]
@@ -308,10 +312,18 @@ def print_response(q_type, q, r):
 
             digest_hex_str = bin_str_to_hex_str(digest_bin)
 
-            print("Key tag: " + str(key_tag))
-            print("Algorithm: " + str(alg))
-            print("Digest type: " + str(digest_type))
-            print("Digest: " + digest_hex_str)
+            parsed_response.append({
+                "record_type": record_type,
+                "key_tag": str(key_tag),
+                "algorithm": str(alg),
+                "digest_type": str(digest_type),
+                "digest": digest_hex_str
+            })
+
+            # print("Key tag: " + str(key_tag))
+            # print("Algorithm: " + str(alg))
+            # print("Digest type: " + str(digest_type))
+            # print("Digest: " + digest_hex_str)
         elif ans_type == Q_TYPE_HEX[2]:
             # RRSIG Record
             type_covered = int(ans_as_bin_str[0:16], 2)
@@ -324,22 +336,41 @@ def print_response(q_type, q, r):
             [sig_name, sig_index] = get_name_hex_and_next_index(ans_as_bin_str[144:])
             sig = bin_str_to_hex_str(ans_as_bin_str[sig_index + 144:])
 
-            print("Type covered: " + str(type_covered))
-            print("Algorithm: " + str(alg))
-            print("Labels: " + str(labels))
-            print("TTL: " + str(ttl))
-            print("Signature expiration: " + str(sig_exp))
-            print("Signature inception: " + str(sig_inc))
-            print("Key tag: " + str(key_tag))
-            print("Signature name: " + sig_name)
-            print("Signature: " + sig)
+            parsed_response.append({
+                "record_type": record_type,
+                "type_covered": str(type_covered),
+                "algorithm": str(alg),
+                "labels": str(labels),
+                "ttl": str(ttl),
+                "sig_exp": str(sig_exp),
+                "sig_inc": str(sig_inc),
+                "key_tag": str(key_tag),
+                "sig_name": sig_name,
+                "signature": sig
+            })
+
+            # print("Type covered: " + str(type_covered))
+            # print("Algorithm: " + str(alg))
+            # print("Labels: " + str(labels))
+            # print("TTL: " + str(ttl))
+            # print("Signature expiration: " + str(sig_exp))
+            # print("Signature inception: " + str(sig_inc))
+            # print("Key tag: " + str(key_tag))
+            # print("Signature name: " + sig_name)
+            # print("Signature: " + sig)
         elif ans_type == Q_TYPE_HEX[3]:
             # NSEC Record
             [next_domain, type_bit_maps_index] = get_name_hex_and_next_index(ans_as_bin_str)
             type_bit_maps = bin_str_to_hex_str(ans_as_bin_str[type_bit_maps_index:])
 
-            print("Next domain: " + next_domain)
-            print("Type bit maps: " + type_bit_maps)
+            parsed_response.append({
+                "record_type": record_type,
+                "next_domain": next_domain,
+                "type_bit_maps": type_bit_maps
+            })
+
+            # print("Next domain: " + next_domain)
+            # print("Type bit maps: " + type_bit_maps)
         elif ans_type == Q_TYPE_HEX[4]:
             # DNSKEY Record
             flags = ans_as_bin_str[0:16]
@@ -347,11 +378,18 @@ def print_response(q_type, q, r):
             alg = int(ans_as_bin_str[24:32], 2)
             pub_key = bin_str_to_hex_str(ans_as_bin_str[32:])
 
-            print("Flags: " + flags)
-            print("Protocol: " + str(protocol))
-            print("Algorithm: " + str(alg))
-            print("Public key octet count: " + str(int(len(ans_as_bin_str) - 32) / 8))
-            print("Public key: " + str(pub_key))
+            parsed_response.append({
+                "record_type": record_type,
+                "flags": flags,
+                "protocol": str(protocol),
+                "algorithm": str(alg),
+                "public_key": str(pub_key)
+            })
+
+            # print("Flags: " + flags)
+            # print("Protocol: " + str(protocol))
+            # print("Algorithm: " + str(alg))
+            # print("Public key: " + str(pub_key))
         elif ans_type == Q_TYPE_HEX[5]:
             # NSEC3 Record
             hash_alg = int(ans_as_bin_str[0:8], 2)
@@ -365,21 +403,34 @@ def print_response(q_type, q, r):
             next_hash_owner_name = bin_str_to_hex_str(ans_as_bin_str[hash_len_index + 8:type_bit_maps_index])
             type_bit_maps = bin_str_to_hex_str(ans_as_bin_str[type_bit_maps_index:])
 
-            print("Hash Algorithm: " + str(hash_alg))
-            print("Flags: " + flags)
-            print("Iterations: " + str(iterations))
-            print("Salt: " + salt)
-            print("Next hash owner name: " + next_hash_owner_name)
-            print("Type bit maps: " + type_bit_maps)
-        else:
-            print("Unrecognized response type.")
-            print("Binary dump: ")
-            print(ans_as_bin_str)
-            print("Hex dump: ")
-            print(bin_str_to_hex_str(ans_as_bin_str))
+            parsed_response.append({
+                "record_type": record_type,
+                "hash_algorithm": str(hash_alg),
+                "flags": flags,
+                "iterations": str(iterations),
+                "salt": salt,
+                "next_hash_owner_name": next_hash_owner_name,
+                "type_bit_maps": type_bit_maps
+            })
 
-        print()
+            # print("Hash Algorithm: " + str(hash_alg))
+            # print("Flags: " + flags)
+            # print("Iterations: " + str(iterations))
+            # print("Salt: " + salt)
+            # print("Next hash owner name: " + next_hash_owner_name)
+            # print("Type bit maps: " + type_bit_maps)
+        else:
+            pass
+            # print("Unrecognized response type.")
+            # print("Binary dump: ")
+            # print(ans_as_bin_str)
+            # print("Hex dump: ")
+            # print(bin_str_to_hex_str(ans_as_bin_str))
+
+        # print()
         ans_index = end_index
+
+    return parsed_response
 
 
 def int_to_hex(i):
