@@ -24,6 +24,7 @@ Q_TYPE_STRING = [
     "A",
     "DS",
     "RRSIG",
+    "NSEC",
     "DNSKEY",
     "NSEC3"
 ]
@@ -32,6 +33,7 @@ Q_TYPE_HEX = [
     "0001",
     "002B",
     "002E",
+    "002F",
     "0030",
     "0032"
 ]
@@ -49,6 +51,7 @@ ANS_TYPE_INT = [
     1,
     43,
     46,
+    47,
     48,
     50
 ]
@@ -246,9 +249,9 @@ def print_response(q_type, q, r):
     q_len = len(q)
     head_bin_list = []
 
-    dump_hex(hex_str[1:])
+    # dump_hex(hex_str[1:])
 
-    print("hex str: " + hex_str)
+    # print("hex str: " + hex_str)
 
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
@@ -257,7 +260,6 @@ def print_response(q_type, q, r):
     ans_count = int(head_bin_list[2][0] + head_bin_list[2][1], 2)
     auth_count = int(head_bin_list[3][0] + head_bin_list[3][1], 2)
     add_count = int(head_bin_list[4][0] + head_bin_list[4][1], 2)
-    is_auth = int(head_bin_list[0][0][5])
 
     if r_code != "0000":
         if int(r_code, 2) == 3:
@@ -276,24 +278,15 @@ def print_response(q_type, q, r):
 
     for i in range(0, ans_count + auth_count + add_count):
         ans_type = hex_str[ans_index + 4:ans_index + 8].upper()
-
-        if ans_type not in Q_TYPE_HEX:
-            # print("Skipping resource record " + str(i) + ". Type does not match query type.")
-            print("Resource record type hex: " + ans_type)
-
         rd_index = ans_index + ANS_OFFSET
         start_index = rd_index + 4
         ans_len = int(hex_str[rd_index:start_index], 16)
 
-        # print("query type ", str(q_type))
-        # print("ans type ", str(ans_type))
-        # print("ans length ", str(ans_len))
-        # print("First 2 hex of answer ", hex_str[start_index:start_index + 2])
-
         if ans_type in Q_TYPE_HEX:
             print("Resource record type " + Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t")
-        # else:
-        #     continue
+        else:
+            print("Resource record type hex: " + ans_type)
+            print()
 
         end_index = start_index + 2 * ans_len
         ans_hex = hex_str[start_index:end_index]
@@ -301,6 +294,7 @@ def print_response(q_type, q, r):
         ans_as_bin_str = arr_to_str(ans_bin)
 
         if ans_type == Q_TYPE_HEX[1]:
+            # DS Record
             key_tag = int(ans_as_bin_str[0:16], 2)
             alg = int(ans_as_bin_str[16:24], 2)
             digest_type = int(ans_as_bin_str[24:32], 2)
@@ -321,6 +315,7 @@ def print_response(q_type, q, r):
             print("Digest: " + digest_hex_str)
             print()
         elif ans_type == Q_TYPE_HEX[2]:
+            # RRSIG Record
             type_covered = int(ans_as_bin_str[0:16], 2)
             alg = int(ans_as_bin_str[16:24], 2)
             labels = int(ans_as_bin_str[24:32], 2)
@@ -329,6 +324,8 @@ def print_response(q_type, q, r):
             sig_inc = int(ans_as_bin_str[128:192], 2)
             key_tag = int(ans_as_bin_str[192:208], 2)
             sig_name_and_sig = bin_str_to_hex_str(ans_as_bin_str[208:])
+            [sig_name, sig_index] = get_name_hex_and_next_index(ans_as_bin_str[208:])
+            sig = bin_str_to_hex_str(ans_as_bin_str[sig_index + 208:])
 
             print("Type covered: " + str(type_covered))
             print("Algorithm: " + str(alg))
@@ -337,11 +334,15 @@ def print_response(q_type, q, r):
             print("Signature expiration: " + str(sig_exp))
             print("Signature inception: " + str(sig_inc))
             print("Key tag: " + str(key_tag))
-            print("ans_as_bin_str length: " + str(len(ans_as_bin_str)))
-            # print("Signature name and signature as binary: " + ans_as_bin_str[212:])
-            print("Signature name and signature: " + sig_name_and_sig)
+            print("Signature name: " + sig_name)
+            print("Signature: " + sig)
             print()
         elif ans_type == Q_TYPE_HEX[3]:
+            # NSEC Record
+
+            print()
+        elif ans_type == Q_TYPE_HEX[4]:
+            # DNSKEY Record
             flags = ans_as_bin_str[0:16]
             protocol = int(ans_as_bin_str[16:24], 2)
             alg = int(ans_as_bin_str[24:32], 2)
@@ -353,8 +354,25 @@ def print_response(q_type, q, r):
             print("Public key octet count: " + str(int(len(ans_as_bin_str) - 32) / 8))
             print("Public key: " + str(pub_key))
             print()
-        elif ans_type == Q_TYPE_HEX[4]:
-            print("Answer hex: " + ans_hex)
+        elif ans_type == Q_TYPE_HEX[5]:
+            # NSEC3 Record
+            hash_alg = int(ans_as_bin_str[0:8], 2)
+            flags = ans_as_bin_str[8:16]
+            iterations = int(ans_as_bin_str[16:32], 2)
+            salt_len = int(ans_as_bin_str[32:40], 2)
+            hash_len_index = salt_len * 4
+            salt = bin_str_to_hex_str(ans_as_bin_str[40:hash_len_index])
+            hash_len = int(ans_as_bin_str[hash_len_index:hash_len_index + 8], 2)
+            type_bit_maps_index = hash_len_index + 8 + hash_len * 4
+            next_hash_owner_name = bin_str_to_hex_str(ans_as_bin_str[hash_len_index + 8:type_bit_maps_index])
+            type_bit_maps = bin_str_to_hex_str(ans_as_bin_str[type_bit_maps_index:])
+
+            print("Hash Algorithm: " + str(hash_alg))
+            print("Flags: " + flags)
+            print("Iterations: " + str(iterations))
+            print("Salt: " + salt)
+            print("Next hash owner name: " + next_hash_owner_name)
+            print("Type bit maps: " + type_bit_maps)
             print()
         else:
             pass
@@ -483,6 +501,33 @@ def bin_str_to_hex_str(b_str):
         hex_str = hex_str + hex_str_part + " "
 
     return hex_str
+
+
+def get_name_hex_and_next_index(bin_str):
+    word_len = int(bin_str[0:8], 2) * 8
+    start_index = 8
+    final_index = start_index + word_len
+    keep_going = True
+    hex_str = ""
+
+    while keep_going:
+        for i in range(start_index, final_index, 8):
+            next_hex = str(hex(int(bin_str[i:i + 8], 2))[2:])
+
+            if len(next_hex) == 1:
+                next_hex = "0" + next_hex
+
+            hex_str = hex_str + next_hex + " "
+
+        word_len = int(bin_str[final_index:final_index + 8])
+
+        if word_len == 0:
+            keep_going = False
+            final_index = final_index + 8
+        else:
+            start_index = final_index
+            final_index = final_index + word_len * 8
+    return [hex_str, final_index]
 
 
 def arr_to_str(arr):
