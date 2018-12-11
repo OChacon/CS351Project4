@@ -13,6 +13,7 @@ import select
 import math
 import base64
 import hashlib
+import time
 
 
 H_1 = "736F"
@@ -177,7 +178,7 @@ def send_query():
         exit(0)
 
     parsed_response = parse_response(question, resp[0])
-    # key_validation(parsed_response)
+    key_validation(parsed_response)
     # get a response for com
     # parse that
     # key validate it
@@ -196,28 +197,40 @@ def key_validation(pr):
     :return: True if the response is validated,
     prints error message otherwise.
     """
-    # Check the sig_inc and sig_exp to make sure it's still valid
-    # If so, move on to check the keys
-    h = ''
+    h = []
     verified = False
     for r in pr:
         if r['record_type'] == 'RRSIG':
-            if r['algorithm'] == '8':
-                h = hashlib.sha3_256(r['signature'].encode('utf-8')).hexdigest()
-            elif r['algorithm'] == '10':
-                h = hashlib.sha3_512(r['signature'].encode('utf-8')).hexdigest()
-            elif r['algorithm'] == '5':
-                h = hashlib.sha1(r['signature'].encode('utf-8')).hexdigest()
+            # Check the sig_inc and sig_exp to make sure it's still valid
+            cur_time = time.time()
+            if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
+                # Time's still good, check keys
+                sig = r['signature'].split(' ')
+                s = ''
+                for x in sig:
+                    s = s + x
+                if r['algorithm'] == '8':
+                    h.append(hashlib.sha3_256(s.encode('utf-8')).hexdigest())
+                elif r['algorithm'] == '10':
+                    h.append(hashlib.sha3_512(s.encode('utf-8')).hexdigest())
+                elif r['algorithm'] == '5':
+                    h.append(hashlib.sha1(s.encode('utf-8')).hexdigest())
             else:
-                # This'll need to be more detailed error message
-                print("Incorrect RRSIG Algorithm")
+                # The RRSIG's expired
+                print("ERROR\tEXPIRED-RRSIG")
+                exit(0)
     # check the hash and compare to all the DS record's digest
     for r in pr:
         if r['record_type'] == "DS":
-            if h == r['digest']:
-                verified = True
+            dig = r['digest'].split(' ')
+            d = ''
+            for x in dig:
+                d = d + x
+            for x in h:
+                if x == d:
+                    verified = True
     if verified:
-        return True
+        print("verified")
     else:
         # Print out error with error type as found above (invalid-rrsig, etc)
         print("not verified")
