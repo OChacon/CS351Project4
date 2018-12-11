@@ -323,7 +323,6 @@ def print_response(q_type, q, r):
             sig_exp = int(ans_as_bin_str[64:128], 2)
             sig_inc = int(ans_as_bin_str[128:192], 2)
             key_tag = int(ans_as_bin_str[192:208], 2)
-            sig_name_and_sig = bin_str_to_hex_str(ans_as_bin_str[208:])
             [sig_name, sig_index] = get_name_hex_and_next_index(ans_as_bin_str[208:])
             sig = bin_str_to_hex_str(ans_as_bin_str[sig_index + 208:])
 
@@ -339,7 +338,11 @@ def print_response(q_type, q, r):
             print()
         elif ans_type == Q_TYPE_HEX[3]:
             # NSEC Record
+            [next_domain, type_bit_maps_index] = get_name_hex_and_next_index(ans_as_bin_str)
+            type_bit_maps = bin_str_to_hex_str(ans_as_bin_str[type_bit_maps_index:])
 
+            print("Next domain: " + next_domain)
+            print("Type bit maps: " + type_bit_maps)
             print()
         elif ans_type == Q_TYPE_HEX[4]:
             # DNSKEY Record
@@ -519,14 +522,14 @@ def get_name_hex_and_next_index(bin_str):
 
             hex_str = hex_str + next_hex + " "
 
-        word_len = int(bin_str[final_index:final_index + 8])
+        word_len = int(bin_str[final_index:final_index + 8], 2)
 
         if word_len == 0:
             keep_going = False
             final_index = final_index + 8
         else:
-            start_index = final_index
-            final_index = final_index + word_len * 8
+            start_index = final_index + 8
+            final_index = start_index + word_len * 8
     return [hex_str, final_index]
 
 
