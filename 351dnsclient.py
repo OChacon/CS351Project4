@@ -249,7 +249,7 @@ def print_response(q_type, q, r):
     q_len = len(q)
     head_bin_list = []
 
-    # dump_hex(hex_str[1:])
+    dump_hex(hex_str[1:])
 
     # print("hex str: " + hex_str)
 
@@ -286,7 +286,6 @@ def print_response(q_type, q, r):
             print("Resource record type " + Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t")
         else:
             print("Resource record type hex: " + ans_type)
-            print()
 
         end_index = start_index + 2 * ans_len
         ans_hex = hex_str[start_index:end_index]
@@ -313,7 +312,6 @@ def print_response(q_type, q, r):
             print("Algorithm: " + str(alg))
             print("Digest type: " + str(digest_type))
             print("Digest: " + digest_hex_str)
-            print()
         elif ans_type == Q_TYPE_HEX[2]:
             # RRSIG Record
             type_covered = int(ans_as_bin_str[0:16], 2)
@@ -335,7 +333,6 @@ def print_response(q_type, q, r):
             print("Key tag: " + str(key_tag))
             print("Signature name: " + sig_name)
             print("Signature: " + sig)
-            print()
         elif ans_type == Q_TYPE_HEX[3]:
             # NSEC Record
             [next_domain, type_bit_maps_index] = get_name_hex_and_next_index(ans_as_bin_str)
@@ -343,7 +340,6 @@ def print_response(q_type, q, r):
 
             print("Next domain: " + next_domain)
             print("Type bit maps: " + type_bit_maps)
-            print()
         elif ans_type == Q_TYPE_HEX[4]:
             # DNSKEY Record
             flags = ans_as_bin_str[0:16]
@@ -356,7 +352,6 @@ def print_response(q_type, q, r):
             print("Algorithm: " + str(alg))
             print("Public key octet count: " + str(int(len(ans_as_bin_str) - 32) / 8))
             print("Public key: " + str(pub_key))
-            print()
         elif ans_type == Q_TYPE_HEX[5]:
             # NSEC3 Record
             hash_alg = int(ans_as_bin_str[0:8], 2)
@@ -376,47 +371,15 @@ def print_response(q_type, q, r):
             print("Salt: " + salt)
             print("Next hash owner name: " + next_hash_owner_name)
             print("Type bit maps: " + type_bit_maps)
-            print()
         else:
-            pass
-            # print("Binary string length: " + str(len(ans_bin)))
-            # print("Answer as bin string: ")
-            #
-            # for ab in ans_bin:
-            #     print(ab)
-            #
-            # print()
+            print("Unrecognized response type.")
+            print("Binary dump: ")
+            print(ans_as_bin_str)
+            print("Hex dump: ")
+            print(bin_str_to_hex_str(ans_as_bin_str))
 
-        # print("ans bin")
-        #
-        # for ab in ans_bin:
-        #     print(ab)
-        #
-        # print()
-
-        # print("answer hex " + ans_hex)
-
-        # j = start_index
-        #
-        # while j < end_index:
-        #     h = hex_str[j:j + 2]
-        #
-        #     if 0 <= int(h, 16) <= 31:
-        #         out_str += "."
-        #         j += 2
-        #     else:
-        #         out_str += chr(int(h, 16))
-        #         j += 2
-
-        # out_str += "." + d
-        # ans_index = rd_index + 4 + 2 * ans_len
+        print()
         ans_index = end_index
-
-        # if should_print:
-        #     if (i < ans_count or i >= int(ans_count) + int(auth_count)) and is_auth != 1:
-        #         print(out_str + "\t <nonauth>")
-        #     else:
-        #         print(out_str + "\t <auth>")
 
 
 def int_to_hex(i):
@@ -522,14 +485,20 @@ def get_name_hex_and_next_index(bin_str):
 
             hex_str = hex_str + next_hex + " "
 
-        word_len = int(bin_str[final_index:final_index + 8], 2)
+        next_bin = bin_str[final_index:final_index + 8]
 
-        if word_len == 0:
-            keep_going = False
-            final_index = final_index + 8
+        if len(next_bin) == 8:      # stop if find a space character
+            word_len = int(next_bin, 2)
+
+            if word_len == 0:
+                keep_going = False
+                final_index = final_index + 8
+            else:
+                start_index = final_index + 8
+                final_index = start_index + word_len * 8
         else:
-            start_index = final_index + 8
-            final_index = start_index + word_len * 8
+            keep_going = False
+
     return [hex_str, final_index]
 
 
