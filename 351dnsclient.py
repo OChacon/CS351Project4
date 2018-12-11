@@ -187,10 +187,20 @@ def dump_packet(p):
         wrd = h_str[i:i + 2]
         h_list.append(wrd)
 
-        if 0 <= int(wrd, 16) <= 31:
-            s_list.append(".")
-        else:
+        wrd_as_int = int(wrd, 16)
+
+        if wrd_as_int == 45 or \
+            (47 < wrd_as_int < 58) or \
+            (64 < wrd_as_int < 91) or \
+            (96 < wrd_as_int < 123):
             s_list.append(chr(int(wrd, 16)))
+        else:
+            s_list.append(".")
+
+        # if 0 <= int(wrd, 16) <= 31:
+        #     s_list.append(".")
+        # else:
+        #     s_list.append(chr(int(wrd, 16)))
 
     wrd_cnt = len(h_list)
     lines_cnt = int(math.floor(wrd_cnt / 16) + 1)
