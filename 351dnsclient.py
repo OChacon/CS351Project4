@@ -76,11 +76,11 @@ ANS_OFFSET = 20
 HEAD_LEN = 24
 
 
-def send_query():
+def main():
     """
-    Main function. Parses command line parameters, constructs
-    and sends query, interprets and displays response.
-    :return: None
+        Main function. Parses command line parameters, constructs
+        and sends query, interprets and displays response.
+        :return: None
     """
     args = sys.argv
     args_len = len(args)
@@ -144,6 +144,20 @@ def send_query():
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
+    response = send_query(server, msg, port, question)
+    parsed_response = parse_response(response[0], response[1])
+    key_validation(parsed_response)
+    # get a response for com
+    # parse that
+    # key validate it
+    # if that's good, get a response for root
+    # parse that
+    # key validate that
+    # if that's good, we good. Print out all that shit
+    print_results(name, record, parsed_response)
+
+
+def send_query(server, msg, port, question):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
     timed_out = False
@@ -177,16 +191,7 @@ def send_query():
     elif erred_out:
         exit(0)
 
-    parsed_response = parse_response(question, resp[0])
-    key_validation(parsed_response)
-    # get a response for com
-    # parse that
-    # key validate it
-    # if that's good, get a response for root
-    # parse that
-    # key validate that
-    # if that's good, we good. Print out all that shit
-    print_results(name, record, parsed_response)
+    return question, resp[0]
 
 
 def key_validation(pr):
@@ -775,4 +780,4 @@ def usage():
 
 
 if __name__ == "__main__":
-    send_query()
+    main()
