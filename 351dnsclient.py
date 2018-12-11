@@ -65,6 +65,26 @@ ANS_TYPE_INT = [
     50
 ]
 
+DNSKEY_ALGS = [
+    "DELETE",
+    "RSAMD5",
+    "DH",
+    "DSA",
+    "",
+    "RSASHA1",
+    "DSA-NSEC3-SHA1",
+    "RSASHA1-NSEC3-SHA1",
+    "RSASHA256",
+    "",
+    "RSASHA512",
+    "",
+    "ECC-GOST",
+    "ECDSAP256SHA256",
+    "ECDSAP384SHA384",
+    "ED25519",
+    "ED448"
+]
+
 ANS_TYPE_A = 1
 ANS_TYPE_DS = 43
 ANS_TYPE_RRSIG = 46
@@ -466,13 +486,23 @@ def parse_response(q, r):
             flags = ans_as_bin_str[0:16]
             protocol = int(ans_as_bin_str[16:24], 2)
             alg = int(ans_as_bin_str[24:32], 2)
+            alg_name = DNSKEY_ALGS[alg]
             pub_key = bin_str_to_hex_str(ans_as_bin_str[32:])
+            key_type_num = 257
+            key_type_str = "KSK"
+
+            if flags[7] == "1":
+                key_type = 256
+                key_type_str = "ZSK"
 
             parsed_response.append({
                 "record_type": record_type,
                 "flags": flags,
+                "key_type_num": str(key_type_num),
+                "key_type_str": str(key_type_str),
                 "protocol": str(protocol),
                 "algorithm": str(alg),
+                "alg_name": alg_name,
                 "public_key": str(pub_key)
             })
 
@@ -735,23 +765,71 @@ def print_results(url, q_type, results):
                 print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
                 print(r["labels"] + " ", end="")
                 print(r["ttl"] + " (")
-
-                b64_len = len(r["sig_as_base64"])
-
-                if b64_len < 45:
-                    print("\t\t\t\t\t" + r["sig_as_base64"])
-                else:
-                    print("\t\t\t\t\t" + r["sig_as_base64"][:44])
-                    print("\t\t\t\t\t[ ... ]")
-
-                    if b64_len > 88:
-                        print("\t\t\t\t\t" + r["sig_as_base64"][b64_len - 44:] + " )")
-                    else:
-                        print("\t\t\t\t\t" + r["sig_as_base64"][44:] + " )")
+                print_digest_or_base64(r["sig_as_base64"])
     elif q_type == Q_TYPE_VALID_INPUTS[1]:
-        pass
+        for r in results:
+            if r["record_type"] == Q_TYPE_STRING[1]:
+                print(url_str, end="")
+                print("IN DS ", end="")
+                print(r["key_tag"] + " ", end="")
+                print(r["algorithm"] + " ", end="")
+                print(r["digest_type"] + " (")
+                print_digest_or_base64(r["digest"])
+            elif r["record_type"] == Q_TYPE_STRING[2]:
+                print(url_str, end="")
+                print("IN RRSIG DS ", end="")
+                print(r["algorithm"] + " ", end="")
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
+                print(r["labels"] + " ", end="")
+                print(r["ttl"] + " (")
+                print("\t\t\t\t\t", end="")
+                print(r["sig_exp"] + " ", end="")
+                print(r["sig_inc"] + " ", end="")
+                print(r["key_tag"] + " ", end="")
+                print(r["sig_name"] + " ")
+                print_digest_or_base64(r["sig_as_base64"])
     elif q_type == Q_TYPE_VALID_INPUTS[2]:
-        pass
+        for r in results:
+            if r["record_type"] == Q_TYPE_STRING[4]:
+                print(url_str, end="")
+                print("IN DNSKEY ", end="")
+                print(r["key_type_num"] + " ", end="")
+                print(r["protocol"] + " ", end="")
+                print(r["algorithm"] + " (")
+                print_digest_or_base64(r["public_key"])
+                print("\t\t\t\t\t; ", end="")
+                print(r["key_type_str"] + "; ", end="")
+                print("alg = " + r["alg_name"] + "; ", end=""),
+                print("key id = " + "some key")
+            elif r["record_type"] == Q_TYPE_STRING[2]:
+                print(url_str, end="")
+                print("IN RRSIG DNSKEY ", end="")
+                print(r["algorithm"] + " ", end="")
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
+                print(r["labels"] + " ", end="")
+                print(r["ttl"] + " (")
+                print("\t\t\t\t\t", end="")
+                print(r["sig_exp"] + " ", end="")
+                print(r["sig_inc"] + " ", end="")
+                print(r["key_tag"] + " ", end="")
+                print(r["sig_name"] + " ")
+                print_digest_or_base64(r["sig_as_base64"])
+
+
+def print_digest_or_base64(strng):
+    stripped_string = strng.replace(" ", "")
+    length = len(stripped_string)
+
+    if length < 45:
+        print("\t\t\t\t\t" + stripped_string + " )")
+    else:
+        print("\t\t\t\t\t" + stripped_string[:44])
+
+        if length > 88:
+            print("\t\t\t\t\t[ ... ]")
+            print("\t\t\t\t\t" + stripped_string[length - 44:] + " )")
+        else:
+            print("\t\t\t\t\t" + stripped_string[44:] + " )")
 
 
 def print_err(e):
