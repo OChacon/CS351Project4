@@ -249,6 +249,7 @@ def print_response(q_type, q, r):
     dump_hex(hex_str[1:])
 
     print("hex str: " + hex_str)
+    print()
 
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
@@ -291,7 +292,7 @@ def print_response(q_type, q, r):
         # print("First 2 hex of answer ", hex_str[start_index:start_index + 2])
 
         if ans_type in Q_TYPE_HEX:
-            print("Resource record type " + Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t")
+            print("Resource record type: " + Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)] + "\t")
         # else:
         #     continue
 
