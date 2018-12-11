@@ -12,6 +12,7 @@ import socket
 import select
 import math
 import base64
+import hashlib
 
 
 H_1 = "736F"
@@ -170,7 +171,50 @@ def send_query():
         exit(0)
 
     parsed_response = parse_response(question, resp[0])
+    key_validation(parsed_response)
+    # get a response for com
+    # parse that
+    # key validate it
+    # if that's good, get a response for root
+    # parse that
+    # key validate that
+    # if that's good, we good. Print out all that shit
     print()
+
+
+def key_validation(pr):
+    """
+    Takes a response, checks the keys to validate them.
+    Also checks to see if the sig is still valid with it's expiration dates.
+    :param pr: the parsed response
+    :return: True if the response is validated,
+    prints error message otherwise.
+    """
+    # Check the sig_inc and sig_exp to make sure it's still valid
+    # If so, move on to check the keys
+    h = ''
+    verified = False
+    for r in pr:
+        if r['record_type'] == 'RRSIG':
+            if r['algorithm'] == '8':
+                h = hashlib.sha3_256(r['signature'].encode('utf-8')).hexdigest()
+            elif r['algorithm'] == '10':
+                h = hashlib.sha3_512(r['signature'].encode('utf-8')).hexdigest()
+            elif r['algorithm'] == '5':
+                h = hashlib.sha1(r['signature'].encode('utf-8')).hexdigest()
+            else:
+                # This'll need to be more detailed error message
+                print("Incorrect RRSIG Algorithm")
+    # check the hash and compare to all the DS record's digest
+    for r in pr:
+        if r['record_type'] == "DS":
+            if h == r['digest']:
+                verified = True
+    if verified:
+        return True
+    else:
+        # Print out error with error type as found above (invalid-rrsig, etc)
+        print("not verified")
 
 
 def dump_packet(p):
