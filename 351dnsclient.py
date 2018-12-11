@@ -134,7 +134,6 @@ def send_query():
     add_rr = OPT_NAME + OPT_TYPE + OPT_CLASS + OPT_TTL + OPT_RDLEN
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
-    # msg = binascii.unhexlify((header + question).replace("\n", ""))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
@@ -169,7 +168,7 @@ def send_query():
     elif erred_out:
         exit(0)
 
-    parsed_response = parse_response(record_hex, question, resp[0])
+    parsed_response = parse_response(question, resp[0])
     print()
 
 
@@ -227,6 +226,11 @@ def dump_packet(p):
 
 
 def dump_hex(h):
+    """
+    Dumps raw hex string for debugging
+    :param h: hex string
+    :return: None
+    """
     h_len = len(h)
 
     for i in range(0, h_len):
@@ -238,13 +242,13 @@ def dump_hex(h):
     print()
 
 
-def parse_response(q_type, q, r):
+def parse_response(q, r):
     """
-    Prints server response to query
+    Parses server response to query
     :param q_type: question type sent in query
     :param q: query string
     :param r: response string
-    :return: None
+    :return: Array of parsed responses as dictionaries
     """
     parsed_response = []
     hex_str = str(binascii.hexlify(r))[1:-1]
@@ -499,6 +503,11 @@ def hex_to_bin_list(h_str):
 
 
 def bin_str_to_hex_str(b_str):
+    """
+    Translates binary string to hex string
+    :param b_str: binary string
+    :return: hex string
+    """
     b_len = len(b_str)
     byte_count = int(b_len / 8)
     hex_str = ""
@@ -521,6 +530,11 @@ def bin_str_to_hex_str(b_str):
 
 
 def get_name_hex_and_next_index(bin_str):
+    """
+    Gets name from beginning of binary string and returns name and final index
+    :param bin_str: binary string
+    :return: name and final index
+    """
     word_len = int(bin_str[0:8], 2) * 8
     start_index = 8
     final_index = start_index + word_len
@@ -554,6 +568,11 @@ def get_name_hex_and_next_index(bin_str):
 
 
 def arr_to_str(arr):
+    """
+    Creates string from array of strings
+    :param arr: array of strings
+    :return: combined string
+    """
     the_string = ""
 
     for a in arr:
