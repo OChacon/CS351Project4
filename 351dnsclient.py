@@ -250,12 +250,7 @@ def key_validation(ds_pr, dnskey_pr):
             rdata = f + p + a + pk
             # make the digest and store it
             d = owner_name + rdata
-            if r['algorithm'] == '8':
-                dnskey_digest.append(hashlib.sha3_256(d.encode('utf-8')).hexdigest())
-            elif r['algorithm'] == '10':
-                dnskey_digest.append(hashlib.sha3_512(d.encode('utf-8')).hexdigest())
-            elif r['algorithm'] == '5':
-                dnskey_digest.append(hashlib.sha1(d.encode('utf-8')).hexdigest())
+            dnskey_digest.append(hasher(r['algorithm'], d))
 
     for r in ds_pr:
         if r['record_type'] == 'RRSIG':
@@ -281,6 +276,21 @@ def key_validation(ds_pr, dnskey_pr):
         print("expired")
     elif not_expired and not verified:
         print("not verified")
+
+
+def hasher(algo, s):
+    """
+    Takes a specific algo and the string to be hashed
+    :param algo: the specific hashing function to use
+    :param s: the string to be hashed
+    :return: a hash according to the specific algo to use
+    """
+    if algo == '8':
+        return hashlib.sha3_256(s.encode('utf-8')).hexdigest()
+    elif algo == '10':
+        return hashlib.sha3_512(s.encode('utf-8')).hexdigest()
+    elif algo == '5':
+        return hashlib.sha1(s.encode('utf-8')).hexdigest()
 
 
 def dump_packet(p):
