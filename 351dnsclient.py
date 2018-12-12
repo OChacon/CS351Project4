@@ -216,6 +216,7 @@ def send_query(server, msg, port, question, dump):
     return question, resp[0]
 
 
+# key_validation is not fully functional
 def key_validation(pr, dnskey_pr, name_bin, record):
     """
     Takes a response, checks the keys to validate them.
@@ -430,7 +431,6 @@ def dump_hex(h):
 def parse_response(q, r):
     """
     Parses server response to query
-    :param q_type: question type sent in query
     :param q: query string
     :param r: response string
     :return: Array of parsed responses as dictionaries
@@ -915,7 +915,6 @@ def print_results(url, q_type, results):
                 print("\t\t\t\t\t; ", end="")
                 print(r["key_type_str"] + "; ", end="")
                 print("alg = " + r["alg_name"] + "; ", end=""),
-                print("key id = " + "some key")
                 print("DNSKEY as int: " + str(r["key_int"]))
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
@@ -935,7 +934,6 @@ def print_results(url, q_type, results):
 def print_digest_or_base64(strng):
     stripped_string = strng.replace(" ", "")
     length = len(stripped_string)
-    # print(stripped_string)
 
     if length < 45:
         print("\t\t\t\t\t" + stripped_string + " )")
