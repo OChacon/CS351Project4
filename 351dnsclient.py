@@ -469,6 +469,8 @@ def parse_response(q, r):
             key_tag = int(ans_as_bin_str[128:144], 2)
             [sig_name, sig_index] = get_name_hex_and_next_index(ans_as_bin_str[144:])
             sig = bin_str_to_hex_str(ans_as_bin_str[sig_index + 144:])
+            sig_as_base64 = str(base64.b64encode(bytes(sig, "utf-8")))[2:-1]
+            sig_as_int = str_to_int(sig_as_base64)
 
             parsed_response.append({
                 "record_type": record_type,
@@ -481,7 +483,8 @@ def parse_response(q, r):
                 "key_tag": str(key_tag),
                 "sig_name": sig_name,
                 "signature": sig,
-                "sig_as_base64": str(base64.b64encode(bytes(sig, "utf-8")))[2:-1]
+                "sig_as_base64": sig_as_base64,
+                "sig_as_int": sig_as_int
             })
 
             # print("Type covered: " + str(type_covered))
@@ -517,8 +520,10 @@ def parse_response(q, r):
             key_type_str = "KSK"
 
             if flags[7] == "1":
-                key_type = 256
+                key_type_num = 256
                 key_type_str = "ZSK"
+
+            [key_exponent, key_int] = get_key_exponent_and_key(pub_key.replace(" ", ""))
 
             parsed_response.append({
                 "record_type": record_type,
@@ -528,7 +533,9 @@ def parse_response(q, r):
                 "protocol": str(protocol),
                 "algorithm": str(alg),
                 "alg_name": alg_name,
-                "public_key": str(pub_key)
+                "public_key": str(pub_key),
+                "key_exponent": str(key_exponent),
+                "key_int": str(key_int)
             })
 
             # print("Flags: " + flags)
@@ -710,6 +717,22 @@ def get_name_hex_and_next_index(bin_str):
     return [hex_str, final_index]
 
 
+def get_key_exponent_and_key(pk):
+    key_tag = int(pk[2:8], 16)
+    k = str_to_int(pk[8:])
+
+    return [key_tag, k]
+
+
+def str_to_int(s):
+    new_int = 0
+
+    for c in s:
+        new_int = new_int * 256 + ord(c)
+
+    return new_int
+
+
 def arr_to_str(arr):
     """
     Creates string from array of strings
@@ -813,6 +836,7 @@ def print_results(url, q_type, results):
                 print(r["key_tag"] + " ", end="")
                 print(r["sig_name"] + " ")
                 print_digest_or_base64(r["sig_as_base64"])
+                print("Sig as int: " + str(r["sig_as_int"]))
     elif q_type == Q_TYPE_VALID_INPUTS[2]:
         for r in results:
             if r["record_type"] == Q_TYPE_STRING[4]:
@@ -826,6 +850,7 @@ def print_results(url, q_type, results):
                 print(r["key_type_str"] + "; ", end="")
                 print("alg = " + r["alg_name"] + "; ", end=""),
                 print("key id = " + "some key")
+                print("DNSKEY as int: " + str(r["key_int"]))
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DNSKEY ", end="")
@@ -844,6 +869,7 @@ def print_results(url, q_type, results):
 def print_digest_or_base64(strng):
     stripped_string = strng.replace(" ", "")
     length = len(stripped_string)
+    # print(stripped_string)
 
     if length < 45:
         print("\t\t\t\t\t" + stripped_string + " )")
