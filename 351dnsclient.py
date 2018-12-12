@@ -173,6 +173,9 @@ def main():
 
     parsed_response = parse_response(response[0], response[1])
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
+
+    check_test(parsed_response, dnskey_parsed_response, response[1])
+
     key_validation(parsed_response, dnskey_parsed_response, name_bin)
     # get a response for com
     # parse that
@@ -181,7 +184,88 @@ def main():
     # parse that
     # key validate that
     # if that's good, we good. Print out all that shit
-    print_results(name, record, parsed_response)
+    # print_results(name, record, parsed_response)
+
+
+def check_test(ds_response, dnskey_response, message):
+    # key_exes = []
+    # key_mods = []
+    # sig_ints = []
+    # digs = []
+    sig = 0
+    digs = []
+    digs_hashed = []
+    dig_types = []
+    dig_algs = []
+    exp = 0
+    modu = 0
+    modu_2 = 0
+    rdata = []
+
+    # dig types: 1 is sha-1, 2 is sha-256
+
+    for r in ds_response:
+        if r["record_type"] == "RRSIG":
+            sig = r["sig_as_int"]
+            # print("Hashed sig")
+            # print(hasher("8", r["signature"].replace(" ", "")))
+            # print()
+            # print("RRSIG sig as base 64")
+            # print(r["sig_as_base64"])
+            # sig_ints.append(r["sig_as_int"])
+        elif r["record_type"] == "DS":
+            print("Digest")
+            print(r["digest"].replace(" ", ""))
+            digs.append(str(base64.b64encode(bytes(r["digest"], "utf-8")))[2:-1])
+            dig_types.append(r["digest_type"])
+            dig_algs.append(r["algorithm"])
+            digs_hashed.append(str(base64.b64encode(bytes(hasher(r["algorithm"], str(message)), "utf-8"))))
+            rdata.append(r["rdata_for_hash"])
+
+    for r in dnskey_response:
+        if r["record_type"] == "DNSKEY" and r["key_type_str"] == "ZSK":
+            exp = r["key_exponent"]
+            modu = r["key_mod"]
+            modu_2 = r["key_mod_test"]
+
+            # print("Calculation")
+            # print(hasher("8", "%x" % (pow(sig, exp, modu))))
+            # print(hasher("8", "%x" % (pow(sig, exp, modu_2))))
+            # print("DNSKEY key as base64")
+            # print(r["pub_key_as_base64"])
+            # print()
+            # key_exes.append(r["key_exponent"])
+            # key_mods.append(r["key_mod"])
+
+    # dnskey_len = len(key_mods)
+    # ds_len = len(sig_ints)
+
+    # print("Digests")
+    #
+    # for d in digs:
+    #     print(hex(d))
+    #
+    # print()
+    # print("Validations")
+    #
+
+    for rd in rdata:
+        hash = hasher("8", rd)
+        mod_len = len(hex(modu_2)) - 2
+        # print(str(modu))
+        print()
+        print(str(hex(modu_2)))
+        test_sig = "0001FF003031300d060960864801650304020105000420" + hash
+
+        while len(test_sig) < mod_len:
+            test_sig = test_sig[:4] + "FF" + test_sig[4:]
+        print(test_sig)
+        new_calc = pow(int(test_sig, 16), exp, modu_2)
+
+        print("new calc")
+        print(new_calc)
+        print("sig")
+        print(str(sig))
 
 
 def send_query(server, msg, port, question):
@@ -419,6 +503,7 @@ def parse_response(q, r):
         ans_hex = hex_str[start_index:end_index]
         ans_bin = hex_to_bin_list(ans_hex)
         ans_as_bin_str = arr_to_str(ans_bin)
+        rdata_for_hash = hex_str[ans_index:end_index].replace(" ", "")
 
         if ans_type == Q_TYPE_HEX[0]:
             ip_1 = str(int(hex_str[rd_index + 4: rd_index + 6], 16))
@@ -446,13 +531,16 @@ def parse_response(q, r):
                 continue
 
             digest_hex_str = bin_str_to_hex_str(digest_bin)
+            digest_as_int = int(digest_bin, 2)
 
             parsed_response.append({
                 "record_type": record_type,
                 "key_tag": str(key_tag),
                 "algorithm": str(alg),
                 "digest_type": str(digest_type),
-                "digest": digest_hex_str
+                "digest": digest_hex_str,
+                "digest_as_int": digest_as_int,
+                "rdata_for_hash": rdata_for_hash
             })
 
             # print("Key tag: " + str(key_tag))
@@ -485,7 +573,8 @@ def parse_response(q, r):
                 "sig_name": sig_name,
                 "signature": sig,
                 "sig_as_base64": sig_as_base64,
-                "sig_as_int": sig_as_int
+                "sig_as_int": sig_as_int,
+                "rdata_for_hash": rdata_for_hash
             })
 
             # print("Type covered: " + str(type_covered))
@@ -517,14 +606,14 @@ def parse_response(q, r):
             alg = int(ans_as_bin_str[24:32], 2)
             alg_name = DNSKEY_ALGS[alg]
             pub_key = bin_str_to_hex_str(ans_as_bin_str[32:])
-            key_type_num = 257
+            pub_key_as_base64 = str(base64.b64encode(bytes(pub_key, "utf-8")))[2:-1]
+            key_type_num = int(flags, 2)
             key_type_str = "KSK"
 
-            if flags[7] == "1":
-                key_type_num = 256
+            if key_type_num == 256:
                 key_type_str = "ZSK"
 
-            [key_exponent, key_int] = get_key_exponent_and_key(pub_key.replace(" ", ""))
+            [key_exponent, key_mod, key_test] = get_key_exponent_and_key(pub_key.replace(" ", ""))
 
             parsed_response.append({
                 "record_type": record_type,
@@ -535,8 +624,10 @@ def parse_response(q, r):
                 "algorithm": str(alg),
                 "alg_name": alg_name,
                 "public_key": str(pub_key),
-                "key_exponent": str(key_exponent),
-                "key_int": str(key_int)
+                "pub_key_as_base64": pub_key_as_base64,
+                "key_exponent": key_exponent,
+                "key_mod": key_mod,
+                "key_mod_test": key_test
             })
 
             # print("Flags: " + flags)
@@ -719,10 +810,11 @@ def get_name_hex_and_next_index(bin_str):
 
 
 def get_key_exponent_and_key(pk):
-    key_tag = int(pk[2:8], 16)
+    exp = int(pk[2:8], 16)
     k = str_to_int(pk[8:])
+    k_int = int(pk[8:], 16)
 
-    return [key_tag, k]
+    return [exp, k, k_int]
 
 
 def str_to_int(s):
@@ -851,7 +943,7 @@ def print_results(url, q_type, results):
                 print(r["key_type_str"] + "; ", end="")
                 print("alg = " + r["alg_name"] + "; ", end=""),
                 print("key id = " + "some key")
-                print("DNSKEY as int: " + str(r["key_int"]))
+                print("DNSKEY as int: " + str(r["key_mod"]))
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DNSKEY ", end="")
