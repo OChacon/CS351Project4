@@ -164,27 +164,21 @@ def main():
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
-    response = send_query(server, msg, port, question)
+    response = send_query(server, msg, port, question, True)
+    parsed_response = parse_response(response[0], response[1])
 
     record_hex = Q_TYPE_HEX[4]
     question = name_bin + record_hex + Q_CLASS
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
-    dnskey_response = send_query(server, msg, port, question)
-
-    parsed_response = parse_response(response[0], response[1])
+    dnskey_response = send_query(server, msg, port, question, False)
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
-    key_validation(parsed_response, dnskey_parsed_response, name_bin)
-    # get a response for com
-    # parse that
-    # key validate it
-    # if that's good, get a response for root
-    # parse that
-    # key validate that
-    # if that's good, we good. Print out all that shit
+
+    key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
+
     print_results(name, record, parsed_response)
 
 
-def send_query(server, msg, port, question):
+def send_query(server, msg, port, question, dump):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
     timed_out = False
@@ -193,7 +187,8 @@ def send_query(server, msg, port, question):
     resp = []
 
     try:
-        dump_packet(msg)
+        if dump:
+            dump_packet(msg)
         sock.sendto(msg, (server, port))
 
         while not timed_out and not is_query_response:
@@ -221,55 +216,59 @@ def send_query(server, msg, port, question):
     return question, resp[0]
 
 
-def key_validation(ds_pr, dnskey_pr, name_bin):
+def key_validation(ds_pr, dnskey_pr, name_bin, record):
     """
     Takes a response, checks the keys to validate them.
     Also checks to see if the sig is still valid with it's expiration dates.
     :param ds_pr: the parsed response
     :param dnskey_pr: the dnskey parsed response
-    :name_bin:
+    :param name_bin: the owner name
+    :param record: the specific record that needs to be verified
     :return: True if the response is validated,
     prints error message otherwise.
     """
     not_expired = False
     verified = False
     dnskey_digest = []
-    i = 0
 
-    for r in dnskey_pr:
-        if r['record_type'] == 'DNSKEY':
-            # build each RDATA
-            f = bin_str_to_hex_str(r['flags']).replace(" ", "")
-            p = int_to_hex(int(r['protocol']))
-            a = int_to_hex(int(r['algorithm']))
-            pk = r['public_key'].replace(" ", "")
-            pk = pk[8:]
-            rdata = f + p + a + pk
-            # make the digest and store it
-            d = name_bin + rdata
-            dnskey_digest.append(hasher(r['algorithm'], d))
+    if record == "DS":
+        for r in dnskey_pr:
+            if r['record_type'] == 'DNSKEY':
+                # build each RDATA
+                f = bin_str_to_hex_str(r['flags']).replace(" ", "")
+                p = int_to_hex(int(r['protocol']))
+                a = int_to_hex(int(r['algorithm']))
+                pk = r['public_key'].replace(" ", "")
+                pk = pk[8:]
+                rdata = f + p + a + pk
+                # make the digest and store it
+                d = name_bin + rdata
+                dnskey_digest.append(hasher(r['algorithm'], d))
 
-    for r in ds_pr:
-        if r['record_type'] == 'RRSIG':
-            # Check the sig_inc and sig_exp to make sure it's still valid
-            cur_time = time.time()
-            if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
-                not_expired = True
+        for r in ds_pr:
+            if r['record_type'] == 'RRSIG':
+                # Check the sig_inc and sig_exp to make sure it's still valid
+                cur_time = time.time()
+                if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
+                    not_expired = True
 
-    # check the hash and compare to all the DS record's digest
-    for r in ds_pr:
-        if r['record_type'] == "DS":
-            d = r['digest'].replace(" ", "")
-            for e in dnskey_digest:
-                if e == d:
-                    verified = True
-    if verified and not_expired:
-        print("verified and not expired")
-    elif verified and not not_expired:
-        # Print out error with error type as found above (invalid-rrsig, etc)
-        print("expired")
-    elif not_expired and not verified:
-        print("not verified")
+        # check the hash and compare to all the DS record's digest
+        for r in ds_pr:
+            if r['record_type'] == "DS":
+                d = r['digest'].replace(" ", "")
+                for e in dnskey_digest:
+                    if e == d:
+                        verified = True
+        if verified and not_expired:
+            print("verified and not expired")
+        elif verified and not not_expired:
+            # Print out error with error type as found above (invalid-rrsig, etc)
+            print("expired")
+        elif not_expired and not verified:
+            print("not verified")
+
+    elif record == "A":
+        print("a")
 
 
 def hasher(algo, s):
