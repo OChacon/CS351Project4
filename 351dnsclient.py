@@ -165,6 +165,7 @@ def main():
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
     response = send_query(server, msg, port, question)
+    dump_packet(msg)
 
     record_hex = Q_TYPE_HEX[4]
     question = name_bin + record_hex + Q_CLASS
@@ -174,101 +175,20 @@ def main():
     parsed_response = parse_response(response[0], response[1])
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
 
-    check_test(parsed_response, dnskey_parsed_response, response[1])
-
     key_validation(parsed_response, dnskey_parsed_response, name_bin)
-    # get a response for com
-    # parse that
-    # key validate it
-    # if that's good, get a response for root
-    # parse that
-    # key validate that
-    # if that's good, we good. Print out all that shit
-    # print_results(name, record, parsed_response)
 
-
-def check_test(ds_response, dnskey_response, message):
-    # key_exes = []
-    # key_mods = []
-    # sig_ints = []
-    # digs = []
-    sig = 0
-    digs = []
-    digs_hashed = []
-    dig_types = []
-    dig_algs = []
-    exp = 0
-    modu = 0
-    modu_2 = 0
-    rdata = []
-
-    # dig types: 1 is sha-1, 2 is sha-256
-
-    for r in ds_response:
-        if r["record_type"] == "RRSIG":
-            sig = r["sig_as_int"]
-            # print("Hashed sig")
-            # print(hasher("8", r["signature"].replace(" ", "")))
-            # print()
-            # print("RRSIG sig as base 64")
-            # print(r["sig_as_base64"])
-            # sig_ints.append(r["sig_as_int"])
-        elif r["record_type"] == "DS":
-            print("Digest")
-            print(r["digest"].replace(" ", ""))
-            digs.append(str(base64.b64encode(bytes(r["digest"], "utf-8")))[2:-1])
-            dig_types.append(r["digest_type"])
-            dig_algs.append(r["algorithm"])
-            digs_hashed.append(str(base64.b64encode(bytes(hasher(r["algorithm"], str(message)), "utf-8"))))
-            rdata.append(r["rdata_for_hash"])
-
-    for r in dnskey_response:
-        if r["record_type"] == "DNSKEY" and r["key_type_str"] == "ZSK":
-            exp = r["key_exponent"]
-            modu = r["key_mod"]
-            modu_2 = r["key_mod_test"]
-
-            # print("Calculation")
-            # print(hasher("8", "%x" % (pow(sig, exp, modu))))
-            # print(hasher("8", "%x" % (pow(sig, exp, modu_2))))
-            # print("DNSKEY key as base64")
-            # print(r["pub_key_as_base64"])
-            # print()
-            # key_exes.append(r["key_exponent"])
-            # key_mods.append(r["key_mod"])
-
-    # dnskey_len = len(key_mods)
-    # ds_len = len(sig_ints)
-
-    # print("Digests")
-    #
-    # for d in digs:
-    #     print(hex(d))
-    #
-    # print()
-    # print("Validations")
-    #
-
-    for rd in rdata:
-        hash = hasher("8", rd)
-        mod_len = len(hex(modu_2)) - 2
-        # print(str(modu))
-        print()
-        print(str(hex(modu_2)))
-        test_sig = "0001FF003031300d060960864801650304020105000420" + hash
-
-        while len(test_sig) < mod_len:
-            test_sig = test_sig[:4] + "FF" + test_sig[4:]
-        print(test_sig)
-        new_calc = pow(int(test_sig, 16), exp, modu_2)
-
-        print("new calc")
-        print(new_calc)
-        print("sig")
-        print(str(sig))
+    print_results(name, record, parsed_response)
 
 
 def send_query(server, msg, port, question):
+    """
+    Sends query to server
+    :param server: server to query
+    :param msg: message to send
+    :param port: optional port
+    :param question: query to compare
+    :return: question and response
+    """
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
     timed_out = False
@@ -277,7 +197,6 @@ def send_query(server, msg, port, question):
     resp = []
 
     try:
-        dump_packet(msg)
         sock.sendto(msg, (server, port))
 
         while not timed_out and not is_query_response:
@@ -353,7 +272,8 @@ def key_validation(ds_pr, dnskey_pr, name_bin):
         # Print out error with error type as found above (invalid-rrsig, etc)
         print("expired")
     elif not_expired and not verified:
-        print("not verified")
+        print()
+        # print("not verified")
 
 
 def hasher(algo, s):
@@ -459,10 +379,6 @@ def parse_response(q, r):
     q_len = len(q)
     head_bin_list = []
 
-    # dump_hex(hex_str[1:])
-
-    # print("hex str: " + hex_str)
-
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
 
@@ -494,10 +410,8 @@ def parse_response(q, r):
 
         if ans_type in Q_TYPE_HEX:
             record_type = Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)]
-            # print("Resource record type " + record_type + "\t")
         else:
             record_type = ""
-            # print("Resource record type hex: " + ans_type)
 
         end_index = start_index + 2 * ans_len
         ans_hex = hex_str[start_index:end_index]
@@ -542,11 +456,6 @@ def parse_response(q, r):
                 "digest_as_int": digest_as_int,
                 "rdata_for_hash": rdata_for_hash
             })
-
-            # print("Key tag: " + str(key_tag))
-            # print("Algorithm: " + str(alg))
-            # print("Digest type: " + str(digest_type))
-            # print("Digest: " + digest_hex_str)
         elif ans_type == Q_TYPE_HEX[2]:
             # RRSIG Record
             type_covered = int(ans_as_bin_str[0:16], 2)
@@ -576,16 +485,6 @@ def parse_response(q, r):
                 "sig_as_int": sig_as_int,
                 "rdata_for_hash": rdata_for_hash
             })
-
-            # print("Type covered: " + str(type_covered))
-            # print("Algorithm: " + str(alg))
-            # print("Labels: " + str(labels))
-            # print("TTL: " + str(ttl))
-            # print("Signature expiration: " + str(sig_exp))
-            # print("Signature inception: " + str(sig_inc))
-            # print("Key tag: " + str(key_tag))
-            # print("Signature name: " + sig_name)
-            # print("Signature: " + sig)
         elif ans_type == Q_TYPE_HEX[3]:
             # NSEC Record
             [next_domain, type_bit_maps_index] = get_name_hex_and_next_index(ans_as_bin_str)
@@ -596,9 +495,6 @@ def parse_response(q, r):
                 "next_domain": next_domain,
                 "type_bit_maps": type_bit_maps
             })
-
-            # print("Next domain: " + next_domain)
-            # print("Type bit maps: " + type_bit_maps)
         elif ans_type == Q_TYPE_HEX[4]:
             # DNSKEY Record
             flags = ans_as_bin_str[0:16]
@@ -629,11 +525,6 @@ def parse_response(q, r):
                 "key_mod": key_mod,
                 "key_mod_test": key_test
             })
-
-            # print("Flags: " + flags)
-            # print("Protocol: " + str(protocol))
-            # print("Algorithm: " + str(alg))
-            # print("Public key: " + str(pub_key))
         elif ans_type == Q_TYPE_HEX[5]:
             # NSEC3 Record
             hash_alg = int(ans_as_bin_str[0:8], 2)
@@ -657,21 +548,6 @@ def parse_response(q, r):
                 "type_bit_maps": type_bit_maps
             })
 
-            # print("Hash Algorithm: " + str(hash_alg))
-            # print("Flags: " + flags)
-            # print("Iterations: " + str(iterations))
-            # print("Salt: " + salt)
-            # print("Next hash owner name: " + next_hash_owner_name)
-            # print("Type bit maps: " + type_bit_maps)
-        else:
-            pass
-            # print("Unrecognized response type.")
-            # print("Binary dump: ")
-            # print(ans_as_bin_str)
-            # print("Hex dump: ")
-            # print(bin_str_to_hex_str(ans_as_bin_str))
-
-        # print()
         ans_index = end_index
 
     return parsed_response
@@ -788,7 +664,6 @@ def get_name_hex_and_next_index(bin_str):
             if len(next_hex) == 1:
                 next_hex = "0" + next_hex
 
-            # hex_str = hex_str + next_hex + " "
             hex_str = hex_str + chr(int(next_hex, 16))
 
         next_bin = bin_str[final_index:final_index + 8]
@@ -810,6 +685,11 @@ def get_name_hex_and_next_index(bin_str):
 
 
 def get_key_exponent_and_key(pk):
+    """
+    Gets key exponent and modulus
+    :param pk: string
+    :return: exponent and modulus
+    """
     exp = int(pk[2:8], 16)
     k = str_to_int(pk[8:])
     k_int = int(pk[8:], 16)
@@ -818,6 +698,11 @@ def get_key_exponent_and_key(pk):
 
 
 def str_to_int(s):
+    """
+    Translates string to int
+    :param s: string
+    :return: int
+    """
     new_int = 0
 
     for c in s:
@@ -893,6 +778,13 @@ def is_dns_response(s):
 
 
 def print_results(url, q_type, results):
+    """
+    Prints results
+    :param url: queried url
+    :param q_type: query type
+    :param results: results
+    :return: None
+    """
     url_str = url + "\t\t"
 
     if q_type == Q_TYPE_VALID_INPUTS[0]:
@@ -929,7 +821,6 @@ def print_results(url, q_type, results):
                 print(r["key_tag"] + " ", end="")
                 print(r["sig_name"] + " ")
                 print_digest_or_base64(r["sig_as_base64"])
-                print("Sig as int: " + str(r["sig_as_int"]))
     elif q_type == Q_TYPE_VALID_INPUTS[2]:
         for r in results:
             if r["record_type"] == Q_TYPE_STRING[4]:
@@ -941,9 +832,7 @@ def print_results(url, q_type, results):
                 print_digest_or_base64(r["public_key"])
                 print("\t\t\t\t\t; ", end="")
                 print(r["key_type_str"] + "; ", end="")
-                print("alg = " + r["alg_name"] + "; ", end=""),
-                print("key id = " + "some key")
-                print("DNSKEY as int: " + str(r["key_mod"]))
+                print("alg = " + r["alg_name"] + "; ")
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DNSKEY ", end="")
@@ -960,9 +849,13 @@ def print_results(url, q_type, results):
 
 
 def print_digest_or_base64(strng):
+    """
+    Prints digest or base64 string
+    :param strng: string to print
+    :return: None
+    """
     stripped_string = strng.replace(" ", "")
     length = len(stripped_string)
-    # print(stripped_string)
 
     if length < 45:
         print("\t\t\t\t\t" + stripped_string + " )")
