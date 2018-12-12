@@ -216,19 +216,23 @@ def send_query(server, msg, port, question, dump):
     return question, resp[0]
 
 
-def key_validation(ds_pr, dnskey_pr, name_bin, record):
+def key_validation(pr, dnskey_pr, name_bin, record):
     """
     Takes a response, checks the keys to validate them.
     Also checks to see if the sig is still valid with it's expiration dates.
-    :param ds_pr: the parsed response
+    :param pr: the parsed response
     :param dnskey_pr: the dnskey parsed response
     :param name_bin: the owner name
     :param record: the specific record that needs to be verified
     :return: True if the response is validated,
     prints error message otherwise.
     """
-    not_expired = False
+    expired = True
     verified = False
+    ds_count = 0
+    rrsig_count = 0
+    a_count = 0
+    dnskey_count = 0
     dnskey_digest = []
 
     if record == "DS":
@@ -245,30 +249,92 @@ def key_validation(ds_pr, dnskey_pr, name_bin, record):
                 d = name_bin + rdata
                 dnskey_digest.append(hasher(r['algorithm'], d))
 
-        for r in ds_pr:
+        for r in pr:
             if r['record_type'] == 'RRSIG':
+                rrsig_count = rrsig_count + 1
                 # Check the sig_inc and sig_exp to make sure it's still valid
                 cur_time = time.time()
                 if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
-                    not_expired = True
+                    expired = False
 
         # check the hash and compare to all the DS record's digest
-        for r in ds_pr:
+        for r in pr:
             if r['record_type'] == "DS":
+                ds_count = ds_count + 1
                 d = r['digest'].replace(" ", "")
                 for e in dnskey_digest:
                     if e == d:
                         verified = True
-        if verified and not_expired:
-            print("verified and not expired")
-        elif verified and not not_expired:
-            # Print out error with error type as found above (invalid-rrsig, etc)
-            print("expired")
-        elif not_expired and not verified:
-            print("not verified")
+
+        if ds_count == 0:
+            print("ERROR\tMISSING-DS\n")
+            exit(0)
+        elif rrsig_count == 0:
+            print("ERROR\tMISSING-RRSIG\n")
+            exit(0)
+        elif expired:
+            print("ERROR\tEXPIRED-RRSIG\n")
+            exit(0)
+        elif not verified:
+            print("ERROR\tINVALID-RRSIG\n")
+            # exit(0)
+        else:
+            print("ERROR\tNONE\n")
+            exit(0)
 
     elif record == "A":
-        print("a")
+        for r in pr:
+            if r['record_type'] == 'A':
+                a_count = a_count + 1
+            elif r['record_type'] == 'RRSIG':
+                rrsig_count = rrsig_count + 1
+                # Check the sig_inc and sig_exp to make sure it's still valid
+                cur_time = time.time()
+                if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
+                    expired = False
+
+        if a_count == 0:
+            print("ERROR\tMISSING-A\n")
+            exit(0)
+        elif rrsig_count == 0:
+            print("ERROR\tMISSING-RRSIG\n")
+            exit(0)
+        elif expired:
+            print("ERROR\tEXPIRED-RRSIG\n")
+            exit(0)
+        elif not verified:
+            print("ERROR\tINVALID-RRSIG\n")
+            # exit(0)
+        else:
+            print("ERROR\tNONE\n")
+            exit(0)
+
+    elif record == "DNSKEY":
+        for r in pr:
+            if r['record_type'] == 'DNSKEY':
+                dnskey_count = dnskey_count + 1
+            elif r['record_type'] == 'RRSIG':
+                rrsig_count = rrsig_count + 1
+                # Check the sig_inc and sig_exp to make sure it's still valid
+                cur_time = time.time()
+                if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
+                    expired = False
+
+        if dnskey_count == 0:
+            print("ERROR\tMISSING-DNSKEY\n")
+            exit(0)
+        elif rrsig_count == 0:
+            print("ERROR\tMISSING-RRSIG\n")
+            exit(0)
+        elif expired:
+            print("ERROR\tEXPIRED-RRSIG\n")
+            exit(0)
+        elif not verified:
+            print("ERROR\tINVALID-RRSIG\n")
+            # exit(0)
+        else:
+            print("ERROR\tNONE\n")
+            exit(0)
 
 
 def hasher(algo, s):
