@@ -164,16 +164,16 @@ def main():
 
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
-    ds_response = send_query(server, msg, port, question)
+    response = send_query(server, msg, port, question)
 
     record_hex = Q_TYPE_HEX[4]
     question = name_bin + record_hex + Q_CLASS
     msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
     dnskey_response = send_query(server, msg, port, question)
 
-    ds_parsed_response = parse_response(ds_response[0], ds_response[1])
+    parsed_response = parse_response(response[0], response[1])
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
-    key_validation(ds_parsed_response, dnskey_parsed_response)
+    key_validation(parsed_response, dnskey_parsed_response, name_bin)
     # get a response for com
     # parse that
     # key validate it
@@ -181,7 +181,7 @@ def main():
     # parse that
     # key validate that
     # if that's good, we good. Print out all that shit
-    print_results(name, record, ds_parsed_response)
+    print_results(name, record, parsed_response)
 
 
 def send_query(server, msg, port, question):
@@ -221,12 +221,13 @@ def send_query(server, msg, port, question):
     return question, resp[0]
 
 
-def key_validation(ds_pr, dnskey_pr):
+def key_validation(ds_pr, dnskey_pr, name_bin):
     """
     Takes a response, checks the keys to validate them.
     Also checks to see if the sig is still valid with it's expiration dates.
     :param ds_pr: the parsed response
     :param dnskey_pr: the dnskey parsed response
+    :name_bin:
     :return: True if the response is validated,
     prints error message otherwise.
     """
@@ -234,22 +235,18 @@ def key_validation(ds_pr, dnskey_pr):
     verified = False
     dnskey_digest = []
     i = 0
-    while dnskey_pr[i]['record_type'] != 'RRSIG':
-        i = i + 1
-    owner_name = str_to_hex(dnskey_pr[i]['sig_name'])
+
     for r in dnskey_pr:
         if r['record_type'] == 'DNSKEY':
             # build each RDATA
-            f = str_to_hex(r['flags'])
-            p = str_to_hex(r['protocol'])
-            a = str_to_hex(r['algorithm'])
-            p_key = r['public_key'].split(' ')
-            pk = ''
-            for x in p_key:
-                pk = pk + x
+            f = bin_str_to_hex_str(r['flags']).replace(" ", "")
+            p = int_to_hex(int(r['protocol']))
+            a = int_to_hex(int(r['algorithm']))
+            pk = r['public_key'].replace(" ", "")
+            pk = pk[8:]
             rdata = f + p + a + pk
             # make the digest and store it
-            d = owner_name + rdata
+            d = name_bin + rdata
             dnskey_digest.append(hasher(r['algorithm'], d))
 
     for r in ds_pr:
@@ -262,10 +259,7 @@ def key_validation(ds_pr, dnskey_pr):
     # check the hash and compare to all the DS record's digest
     for r in ds_pr:
         if r['record_type'] == "DS":
-            dig = r['digest'].split(' ')
-            d = ''
-            for x in dig:
-                d = d + x
+            d = r['digest'].replace(" ", "")
             for e in dnskey_digest:
                 if e == d:
                     verified = True
