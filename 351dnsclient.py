@@ -12,7 +12,7 @@ import socket
 import select
 import math
 import base64
-import hashlib
+import crypto
 import time
 
 
@@ -352,11 +352,16 @@ def hasher(algo, s):
     :return: a hash according to the specific algo to use
     """
     if algo == '8':
-        return hashlib.sha3_256(s.encode('utf-8')).hexdigest()
+        # ALL YOU NEED TO DO IS HASH THE INPUT S AND RETURN IT IGNORE THE PRINTS I WROTE THEM IN SO PYCHARM WON'T YELL AT ME
+        # I HAVE THE CORRECT HASH, IT SHOULD START WITH e2d3c916....
+        print('c')
+
     elif algo == '10':
-        return hashlib.sha3_512(s.encode('utf-8')).hexdigest()
+        print('a')
+        # return hashlib.sha3_512(s.encode('utf-8')).hexdigest()
     elif algo == '5':
-        return hashlib.sha1(s.encode('utf-8')).hexdigest()
+        print('b')
+        # return hashlib.sha1(s.encode('utf-8')).hexdigest()
 
 
 def dump_packet(p):
