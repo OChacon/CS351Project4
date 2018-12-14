@@ -149,18 +149,12 @@ def main():
     name_list = name.split(".")
     name_bin = ""
 
-    i = 0
-    for n in name_list:
-        if n == "":
-            name_list.pop(i)
-            i = i + 1
-        i = i + 1
-
     if args_len == 4 and name_list[0] == "www":
         name_list.pop(0)
 
     for n in name_list:
-        name_bin = name_bin + int_to_hex(len(n)) + str_to_hex(n)
+        if n != "":
+            name_bin = name_bin + int_to_hex(len(n)) + str_to_hex(n)
 
     name_bin = name_bin + Z_BYTE
 
