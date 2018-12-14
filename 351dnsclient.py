@@ -178,7 +178,7 @@ def main():
     dnskey_response = send_query(server, msg, port, question, False)
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
 
-    key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
+    # key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
 
     print_results(name, record, parsed_response)
 
@@ -869,6 +869,12 @@ def print_results(url, q_type, results):
     :param results: results
     :return: None
     """
+    url_tab_count = int(len(url) / 4)
+    sig_indent = "\t\t\t"
+
+    for i in range(0, url_tab_count):
+        sig_indent = sig_indent + "\t"
+
     url_str = url + "\t\t"
 
     if q_type == Q_TYPE_VALID_INPUTS[0]:
@@ -879,10 +885,10 @@ def print_results(url, q_type, results):
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG ", end="")
-                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
-                print(r["labels"] + " ", end="")
-                print(r["ttl"] + " (")
-                print_digest_or_base64(r["sig_as_base64"])
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"], 16))] + " ", end="")
+                print(str(int(r["labels"], 16)) + " ", end="")
+                print(str(int(r["ttl"], 16)) + " (")
+                print_digest_or_base64(r["sig_as_base64"], sig_indent)
     elif q_type == Q_TYPE_VALID_INPUTS[1]:
         for r in results:
             if r["record_type"] == Q_TYPE_STRING[1]:
@@ -891,20 +897,20 @@ def print_results(url, q_type, results):
                 print(r["key_tag"] + " ", end="")
                 print(r["algorithm"] + " ", end="")
                 print(r["digest_type"] + " (")
-                print_digest_or_base64(r["digest"])
+                print_digest_or_base64(r["digest"], sig_indent)
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DS ", end="")
-                print(r["algorithm"] + " ", end="")
-                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
-                print(r["labels"] + " ", end="")
-                print(r["ttl"] + " (")
-                print("\t\t\t\t\t", end="")
-                print(r["sig_exp"] + " ", end="")
-                print(r["sig_inc"] + " ", end="")
-                print(r["key_tag"] + " ", end="")
+                print(str(int(r["algorithm"], 16)) + " ", end="")
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"], 16))] + " ", end="")
+                print(str(int(r["labels"], 16)) + " ", end="")
+                print(str(int(r["ttl"], 16)) + " (")
+                print(sig_indent, end="")
+                print(str(int(r["sig_exp"], 16)) + " ", end="")
+                print(str(int(r["sig_inc"], 16)) + " ", end="")
+                print(str(int(r["key_tag"], 16)) + " ", end="")
                 print(r["sig_name"] + " ")
-                print_digest_or_base64(r["sig_as_base64"])
+                print_digest_or_base64(r["sig_as_base64"], sig_indent)
     elif q_type == Q_TYPE_VALID_INPUTS[2]:
         for r in results:
             if r["record_type"] == Q_TYPE_STRING[4]:
@@ -913,26 +919,25 @@ def print_results(url, q_type, results):
                 print(r["key_type_num"] + " ", end="")
                 print(r["protocol"] + " ", end="")
                 print(r["algorithm"] + " (")
-                print_digest_or_base64(r["public_key"])
-                print("\t\t\t\t\t; ", end="")
+                print_digest_or_base64(r["public_key"], sig_indent)
+                print(sig_indent + "; ", end="")
                 print(r["key_type_str"] + "; ", end="")
                 print("alg = " + r["alg_name"] + "; ")
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DNSKEY ", end="")
-                print(r["algorithm"] + " ", end="")
-                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
-                print(r["labels"] + " ", end="")
-                print(r["ttl"] + " (")
-                print("\t\t\t\t\t", end="")
-                print(r["sig_exp"] + " ", end="")
-                print(r["sig_inc"] + " ", end="")
-                print(r["key_tag"] + " ", end="")
+                print(str(int(r["algorithm"], 16)) + " ", end="")
+                print(str(int(r["labels"], 16)) + " ", end="")
+                print(str(int(r["ttl"], 16)) + " (")
+                print(sig_indent, end="")
+                print(str(int(r["sig_exp"], 16)) + " ", end="")
+                print(str(int(r["sig_inc"], 16)) + " ", end="")
+                print(str(int(r["key_tag"], 16)) + " ", end="")
                 print(r["sig_name"] + " ")
-                print_digest_or_base64(r["sig_as_base64"])
+                print_digest_or_base64(r["sig_as_base64"], sig_indent)
 
 
-def print_digest_or_base64(strng):
+def print_digest_or_base64(strng, indent):
     """
     Prints digest or base64 string
     :param strng: string to print
@@ -942,15 +947,15 @@ def print_digest_or_base64(strng):
     length = len(stripped_string)
 
     if length < 45:
-        print("\t\t\t\t\t" + stripped_string + " )")
+        print(indent + stripped_string + " )")
     else:
-        print("\t\t\t\t\t" + stripped_string[:44])
+        print(indent + stripped_string[:44])
 
         if length > 88:
-            print("\t\t\t\t\t[ ... ]")
-            print("\t\t\t\t\t" + stripped_string[length - 44:] + " )")
+            print(indent + "[ ... ]")
+            print(indent + stripped_string[length - 44:] + " )")
         else:
-            print("\t\t\t\t\t" + stripped_string[44:] + " )")
+            print(indent + stripped_string[44:] + " )")
 
 
 def print_err(e):
