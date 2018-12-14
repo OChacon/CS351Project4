@@ -13,6 +13,10 @@ import select
 import math
 import base64
 import hashlib
+# from Crypto.PublicKey import RSA
+# from Crypto.Signature import PKCS1_v1_5
+# from Crypto.Hash import SHA256
+# from base64 import b64decode
 import time
 
 
@@ -286,32 +290,34 @@ def key_validation(pr, dnskey_pr, name_bin, record):
     elif record == "A":
         rdata = ''
         rr = ''
+        ottl = ''
         for r in pr:
             if r['record_type'] == "RRSIG":
                 # Build the rdata
-                tc = str_to_hex(r['type_covered'])
-                a = str_to_hex(r['algorithm'])
-                l = str_to_hex(r['labels'])
-                ottl = str_to_hex(r['ttl'])
-                sig_exp = str_to_hex(r['sig_exp'])
-                sig_inc = str_to_hex(r['sig_inc'])
-                kt = str_to_hex(r['key_tag'])
-                sn = str_to_hex(r['sig_name'])
-                # sig = r['signature'].replace(" ", "")
-                rdata = tc + a + l + ottl + sig_exp + sig_inc + kt + sn
-                # Build RR
-            elif r['record_type'] == "A":
-                """
-                We're missing some stuff for the a record, need to parse that correctly
-                
-                t = str_to_hex(r['type'])
-                c = str_to_hex(r['class'])
-                ttl = str_to_hex(r['ttl'])
-                dl = str_to_hex(r['data_length'])
-                a = str_to_hex(r['ip'])
-                
-                rr = name_bin + t + c + ttl + dl + a
-                """
+                tc = r['type_covered']
+                a = r['algorithm']
+                l = r['labels']
+                ottl = r['ttl']
+                sig_exp = r['sig_exp']
+                sig_inc = r['sig_inc']
+                kt = r['key_tag']
+                rdata = tc + a + l + ottl + sig_exp + sig_inc + kt + name_bin
+
+        for r in pr:
+            # Build RR
+            if r['record_type'] == "A":
+                t = r['r_t']
+                c = r['class']
+                ttl = ottl
+                dl = r['data_len']
+                a = (r['ip']).split(".")
+                addr = ''
+                for x in a:
+                    addr = addr + int_to_hex(int(x))
+                rr = name_bin + t + c + ttl + dl + addr
+
+        digest = rdata + rr
+        # get the sig verifier function, feed it the digest and the rrsig's sig
 
     elif record == "DNSKEY":
         for r in pr:
@@ -492,6 +498,12 @@ def parse_response(q, r):
         ans_as_bin_str = arr_to_str(ans_bin)
 
         if ans_type == Q_TYPE_HEX[0]:
+            # A Record
+            n = q[:len(q) - 8]
+            t = hex_str[ans_index + 4: ans_index + 8].upper()
+            c = hex_str[ans_index + 8:ans_index + 12].upper()
+            ttl = hex_str[ans_index + 12:ans_index + 20].upper()
+            data_len = hex_str[ans_index + 20: ans_index + 24].upper()
             ip_1 = str(int(hex_str[rd_index + 4: rd_index + 6], 16))
             ip_2 = str(int(hex_str[rd_index + 6: rd_index + 8], 16))
             ip_3 = str(int(hex_str[rd_index + 8: rd_index + 10], 16))
@@ -499,7 +511,12 @@ def parse_response(q, r):
             ip_full = ip_1 + "." + ip_2 + "." + ip_3 + "." + ip_4
 
             parsed_response.append({
+                "name": n,
                 "record_type": record_type,
+                "r_t": t,
+                "class": c,
+                "ttl": ttl,
+                "data_len": data_len,
                 "ip": ip_full
             })
         elif ans_type == Q_TYPE_HEX[1]:
@@ -532,13 +549,13 @@ def parse_response(q, r):
             # print("Digest: " + digest_hex_str)
         elif ans_type == Q_TYPE_HEX[2]:
             # RRSIG Record
-            type_covered = int(ans_as_bin_str[0:16], 2)
-            alg = int(ans_as_bin_str[16:24], 2)
-            labels = int(ans_as_bin_str[24:32], 2)
-            ttl = int(ans_as_bin_str[32:64], 2)
-            sig_exp = int(ans_as_bin_str[64:96], 2)
-            sig_inc = int(ans_as_bin_str[96:128], 2)
-            key_tag = int(ans_as_bin_str[128:144], 2)
+            type_covered = bin_str_to_hex_str(ans_as_bin_str[0:16]).replace(" ", "")
+            alg = bin_str_to_hex_str(ans_as_bin_str[16:24]).replace(" ", "")
+            labels = bin_str_to_hex_str(ans_as_bin_str[24:32]).replace(" ", "")
+            ttl = bin_str_to_hex_str(ans_as_bin_str[32:64]).replace(" ", "")
+            sig_exp = bin_str_to_hex_str(ans_as_bin_str[64:96]).replace(" ", "")
+            sig_inc = bin_str_to_hex_str(ans_as_bin_str[96:128]).replace(" ", "")
+            key_tag = bin_str_to_hex_str(ans_as_bin_str[128:144]).replace(" ", "")
             [sig_name, sig_index] = get_name_hex_and_next_index(ans_as_bin_str[144:])
             sig = bin_str_to_hex_str(ans_as_bin_str[sig_index + 144:])
             sig_as_base64 = str(base64.b64encode(bytes(sig, "utf-8")))[2:-1]
