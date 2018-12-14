@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="41931337-d988-4913-9e9e-a55b9c138790" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/351dnsclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/351dnsclient.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,11 +13,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="351dnsclient.py" pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/351dnsclient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="172">
-              <caret line="355" column="55" selection-start-line="355" selection-start-column="55" selection-end-line="355" selection-end-column="55" />
+            <state relative-caret-position="328">
+              <caret line="357" column="33" lean-forward="true" selection-start-line="357" selection-start-column="33" selection-end-line="357" selection-end-column="33" />
               <folding>
                 <element signature="e#84#99#0" expanded="true" />
               </folding>
@@ -28,8 +28,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="114">
-              <caret line="267" selection-start-line="267" selection-end-line="267" />
+            <state relative-caret-position="134">
+              <caret line="309" selection-start-line="309" selection-end-line="309" />
             </state>
           </provider>
         </entry>
@@ -38,27 +38,9 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>is_dns_response</find>
       <find>print_response</find>
-      <find>get_name_hex_and_next_index</find>
-      <find>index</find>
-      <find>get_key_tag_and_key</find>
-      <find>key_as_int</find>
-      <find>record_type</find>
-      <find>hex_to</find>
-      <find>16)</find>
-      <find>KSK</find>
-      <find>public_key</find>
-      <find>key_exponent</find>
-      <find>sig_as_int</find>
-      <find>hasher</find>
-      <find>digest</find>
-      <find>str_to_int</find>
-      <find>get_key_exponent_and_key</find>
+      <find>is_dns_response</find>
     </findStrings>
-    <replaceStrings>
-      <replace>parse_response</replace>
-    </replaceStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -77,7 +59,7 @@
     <option name="height" value="1007" />
   </component>
   <component name="ProjectView">
-    <navigator proportions="" version="1">
+    <navigator currentView="ProjectPane" proportions="" version="1">
       <flattenPackages />
       <showMembers />
       <showModules />
@@ -90,10 +72,24 @@
       <manualOrder />
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="CS351Project4" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CS351Project4" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../CS351Project2" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
@@ -109,7 +105,8 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration name="351dnsclient" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="351dnsclient" type="PythonConfigurationType" factoryName="Python">
+      <module name="CS351Project4" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -120,21 +117,15 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="CS351Project4" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/351dnsclient.py" />
       <option name="PARAMETERS" value="@8.8.8.8 .com ds" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list size="1">
-        <item index="0" class="java.lang.String" itemvalue="Python.351dnsclient" />
-      </list>
-    </recent_temporary>
-  </component>
-  <component name="ShelveChangesManager" show_recycled="false">
-    <option name="remove_strategy" value="false" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -158,8 +149,8 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.2741433" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.5950156" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.48286605" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.15368639" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -177,13 +168,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/351dnsclient.py</url>
-          <line>353</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/351dnsclient.py</url>
-          <line>256</line>
-          <option name="timeStamp" value="14" />
+          <line>173</line>
+          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -196,47 +182,41 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/351dnsclient.py">
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#84#99#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="289">
+          <caret line="17" selection-start-line="17" selection-end-line="17" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/351dnsclient.py">
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#84#99#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="411">
+          <caret line="1740" selection-start-line="1740" selection-end-line="1740" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/351dnsclient.py">
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/crypt.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="-1289">
+          <caret line="2" selection-start-line="2" selection-end-line="2" />
           <folding>
-            <element signature="e#84#99#0" expanded="true" />
+            <element signature="e#77#90#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="267" selection-start-line="267" selection-end-line="267" />
+        <state relative-caret-position="134">
+          <caret line="309" selection-start-line="309" selection-end-line="309" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/351dnsclient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="172">
-          <caret line="355" column="55" selection-start-line="355" selection-start-column="55" selection-end-line="355" selection-end-column="55" />
+        <state relative-caret-position="328">
+          <caret line="357" column="33" lean-forward="true" selection-start-line="357" selection-start-column="33" selection-end-line="357" selection-end-column="33" />
           <folding>
             <element signature="e#84#99#0" expanded="true" />
           </folding>
