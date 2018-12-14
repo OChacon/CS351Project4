@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="41931337-d988-4913-9e9e-a55b9c138790" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/CS351Project4.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CS351Project4.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/351dnsclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/351dnsclient.py" afterDir="false" />
     </list>
@@ -18,11 +16,20 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/351dnsclient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-578">
-              <caret line="251" column="11" selection-start-line="251" selection-start-column="11" selection-end-line="251" selection-end-column="11" />
+            <state relative-caret-position="-27">
+              <caret line="246" selection-start-line="246" selection-end-line="246" />
               <folding>
                 <element signature="e#84#99#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="134">
+              <caret line="309" selection-start-line="309" selection-end-line="309" />
             </state>
           </provider>
         </entry>
@@ -46,9 +53,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="-5" />
+    <option name="x" value="-255" />
+    <option name="y" value="291" />
     <option name="width" value="957" />
-    <option name="height" value="1046" />
+    <option name="height" value="1007" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -110,7 +118,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/351dnsclient.py" />
-      <option name="PARAMETERS" value="@8.8.8.8 example.com nsec3" />
+      <option name="PARAMETERS" value="@8.8.8.8 .com ds" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -145,8 +153,8 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.5244029" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.3997923" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.5233645" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.28245068" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -158,6 +166,29 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/351dnsclient.py</url>
+          <line>353</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/351dnsclient.py</url>
+          <line>541</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
@@ -184,10 +215,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="134">
+          <caret line="309" selection-start-line="309" selection-end-line="309" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/351dnsclient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-578">
-          <caret line="251" column="11" selection-start-line="251" selection-start-column="11" selection-end-line="251" selection-end-column="11" />
+        <state relative-caret-position="-27">
+          <caret line="246" selection-start-line="246" selection-end-line="246" />
           <folding>
             <element signature="e#84#99#0" expanded="true" />
           </folding>

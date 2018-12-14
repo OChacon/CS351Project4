@@ -149,6 +149,13 @@ def main():
     name_list = name.split(".")
     name_bin = ""
 
+    i = 0
+    for n in name_list:
+        if n == "":
+            name_list.pop(i)
+            i = i + 1
+        i = i + 1
+
     if args_len == 4 and name_list[0] == "www":
         name_list.pop(0)
 
@@ -244,7 +251,6 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 p = int_to_hex(int(r['protocol']))
                 a = int_to_hex(int(r['algorithm']))
                 pk = r['public_key'].replace(" ", "")
-                pk = pk[8:]
                 rdata = f + p + a + pk
                 # make the digest and store it
                 d = name_bin + rdata
