@@ -284,31 +284,34 @@ def key_validation(pr, dnskey_pr, name_bin, record):
             exit(0)
 
     elif record == "A":
+        rdata = ''
+        rr = ''
         for r in pr:
-            if r['record_type'] == 'A':
-                a_count = a_count + 1
-            elif r['record_type'] == 'RRSIG':
-                rrsig_count = rrsig_count + 1
-                # Check the sig_inc and sig_exp to make sure it's still valid
-                cur_time = time.time()
-                if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
-                    expired = False
-
-        if a_count == 0:
-            print("ERROR\tMISSING-A\n")
-            exit(0)
-        elif rrsig_count == 0:
-            print("ERROR\tMISSING-RRSIG\n")
-            exit(0)
-        elif expired:
-            print("ERROR\tEXPIRED-RRSIG\n")
-            exit(0)
-        elif not verified:
-            print("ERROR\tINVALID-RRSIG\n")
-            # exit(0)
-        else:
-            print("ERROR\tNONE\n")
-            exit(0)
+            if r['record_type'] == "RRSIG":
+                # Build the rdata
+                tc = str_to_hex(r['type_covered'])
+                a = str_to_hex(r['algorithm'])
+                l = str_to_hex(r['labels'])
+                ottl = str_to_hex(r['ttl'])
+                sig_exp = str_to_hex(r['sig_exp'])
+                sig_inc = str_to_hex(r['sig_inc'])
+                kt = str_to_hex(r['key_tag'])
+                sn = str_to_hex(r['sig_name'])
+                # sig = r['signature'].replace(" ", "")
+                rdata = tc + a + l + ottl + sig_exp + sig_inc + kt + sn
+                # Build RR
+            elif r['record_type'] == "A":
+                """
+                We're missing some stuff for the a record, need to parse that correctly
+                
+                t = str_to_hex(r['type'])
+                c = str_to_hex(r['class'])
+                ttl = str_to_hex(r['ttl'])
+                dl = str_to_hex(r['data_length'])
+                a = str_to_hex(r['ip'])
+                
+                rr = name_bin + t + c + ttl + dl + a
+                """
 
     elif record == "DNSKEY":
         for r in pr:
