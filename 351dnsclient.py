@@ -264,8 +264,9 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 rdata = f + p + a + pk
                 # make the digest and store it
                 d = name_bin + rdata
-                dnskey_digest.append(hasher("5", d))
                 dnskey_digest.append(hasher("8", d))
+                dnskey_digest.append(hasher("5", d))
+                dnskey_digest.append(hasher("10", d))
 
         for r in pr:
             if r['record_type'] == 'RRSIG':
@@ -1059,7 +1060,7 @@ def print_err(e):
     :return: None
     """
     print("ERROR\t" + e)
-    exit()
+    exit(0)
 
 
 def usage():
