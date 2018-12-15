@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="41931337-d988-4913-9e9e-a55b9c138790" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/351dnsclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/351dnsclient.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,11 +16,38 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/351dnsclient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-8403">
-              <caret line="321" column="24" lean-forward="true" selection-start-line="321" selection-start-column="24" selection-end-line="321" selection-end-column="24" />
+            <state relative-caret-position="128">
+              <caret line="179" selection-start-line="179" selection-end-line="179" />
               <folding>
-                <element signature="e#84#99#0" expanded="true" />
+                <element signature="e#84#97#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/Cryptodome/PublicKey/RSA.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="237">
+              <caret line="577" selection-start-line="577" selection-end-line="577" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/Cryptodome/Math/_IntegerNative.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="128">
+              <caret line="81" selection-start-line="81" selection-end-line="81" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="149">
+              <caret line="309" selection-start-line="309" selection-end-line="309" />
             </state>
           </provider>
         </entry>
@@ -134,7 +161,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1096" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.17153284" />
       <window_info id="Structure" order="1" weight="0.25" />
@@ -142,7 +168,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.41017655" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.20456906" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.55140185" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -157,6 +183,23 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/351dnsclient.py</url>
+          <line>293</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/351dnsclient.py</url>
+          <line>323</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/351dnsclient.py</url>
+          <line>179</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -191,6 +234,21 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/easy_install.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/pip/__main__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/Python34/Lib/site-packages/easy_install.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="149">
@@ -198,12 +256,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/Cryptodome/Math/_IntegerNative.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="128">
+          <caret line="81" selection-start-line="81" selection-end-line="81" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/Cryptodome/PublicKey/RSA.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="237">
+          <caret line="577" selection-start-line="577" selection-end-line="577" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/351dnsclient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-8403">
-          <caret line="321" column="24" lean-forward="true" selection-start-line="321" selection-start-column="24" selection-end-line="321" selection-end-column="24" />
+        <state relative-caret-position="128">
+          <caret line="179" selection-start-line="179" selection-end-line="179" />
           <folding>
-            <element signature="e#84#99#0" expanded="true" />
+            <element signature="e#84#97#0" expanded="true" />
           </folding>
         </state>
       </provider>
