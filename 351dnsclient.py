@@ -845,6 +845,26 @@ def get_name_by_offset(hex_str, offset):
     return name
 
 
+def get_url_chain(url):
+    chain = [url]
+    url_parts = url.split(".")
+    url_len = len(url_parts)
+
+    for i in range(0, url_len):
+        url_parts.pop(0)
+        next_in_chain = ""
+
+        for p in url_parts:
+                next_in_chain = next_in_chain + "." + p
+
+        if next_in_chain != '' and next_in_chain != chain[0]:
+            chain.append(next_in_chain)
+
+    chain.append(".")
+
+    return chain
+
+
 def is_dns_response(s):
     """
     Checks whether DNS response has valid ID and has response type flag set
