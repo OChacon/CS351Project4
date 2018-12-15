@@ -15,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/351dnsclient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="344">
-              <caret line="334" column="33" lean-forward="true" selection-start-line="334" selection-start-column="33" selection-end-line="334" selection-end-column="33" />
+            <state relative-caret-position="379">
+              <caret line="336" selection-start-line="336" selection-end-line="336" />
               <folding>
                 <element signature="e#84#99#0" expanded="true" />
               </folding>
@@ -162,7 +162,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.5401929" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.4049844" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.403946" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -195,24 +195,24 @@
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36-32/Lib/base64.py" />
-    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/Cryptodome/PublicKey/RSA.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="182">
-          <caret line="309" selection-start-line="309" selection-end-line="309" />
+          <caret line="577" selection-start-line="577" selection-end-line="577" />
         </state>
       </provider>
     </entry>
-    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/site-packages/Cryptodome/PublicKey/RSA.py">
+    <entry file="file://D:/Users/Oscar/Python/Python37-32/Lib/codecs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1627">
-          <caret line="355" selection-start-line="355" selection-end-line="355" />
+        <state relative-caret-position="17">
+          <caret line="309" selection-start-line="309" selection-end-line="309" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/351dnsclient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="344">
-          <caret line="334" column="33" lean-forward="true" selection-start-line="334" selection-start-column="33" selection-end-line="334" selection-end-column="33" />
+        <state relative-caret-position="379">
+          <caret line="336" selection-start-line="336" selection-end-line="336" />
           <folding>
             <element signature="e#84#99#0" expanded="true" />
           </folding>

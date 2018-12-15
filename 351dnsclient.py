@@ -324,18 +324,19 @@ def key_validation(pr, dnskey_pr, name_bin, record):
             if r['record_type'] == "DNSKEY":
                 pk = r['public_key'].replace(" ", "")
         data = rdata + rr
-        # mod_ex = get_key_exponent_and_key(pk)
-        # mod = int(mod_ex[0], 16)
-        # ex = int(mod_ex[1], 16)
-        # l = [mod, ex]
-        q = binascii.unhexlify(pk)
-        rsakey = RSA.importKey(q)
+        mod_ex = get_key_exponent_and_key(pk)
+        l = (mod_ex[2], mod_ex[0])
+        rsakey = RSA.construct(l)
         signer = PKCS1_v1_5.new(rsakey)
         digest = SHA256.new()
-        digest.update(b64decode(data))
-        if signer.verify(digest, b64decode(sig)):
+        d = binascii.unhexlify(data)
+        digest.update(d)
+        s = binascii.unhexlify(sig)
+        if signer.verify(digest, s):
+            print("A RECORD VERIFIED")
             return True
-        return False
+        else:
+            return False
 
     elif record == "DNSKEY":
         for r in pr:
