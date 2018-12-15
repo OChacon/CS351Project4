@@ -184,6 +184,15 @@ def main():
 
 
 def send_query(server, msg, port, question, dump):
+    """
+    Sends query to DNS server
+    :param server: DNS server IP
+    :param msg: query
+    :param port: DNS server port
+    :param question: question section of query for response validation
+    :param dump: boolean to avoid multiple query dumping
+    :return: server response
+    """
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(0)
     timed_out = False
@@ -877,6 +886,11 @@ def get_name_by_offset(hex_str, offset):
 
 
 def get_url_chain(url):
+    """
+    Gets trust chain urls from url
+    :param url: query url
+    :return: trust chain urls as list
+    """
     chain = [url]
     url_parts = url.split(".")
     url_len = len(url_parts)
@@ -1010,6 +1024,12 @@ def print_digest_or_base64(strng, indent):
 
 
 def print_validation_error(r_type, e_list):
+    """
+    Prints validation errors
+    :param r_type: record type
+    :param e_list: error list
+    :return: None
+    """
     has_error = False
 
     if e_list[0] == 1:
@@ -1024,6 +1044,8 @@ def print_validation_error(r_type, e_list):
     elif e_list[3] == 1:
         has_error = True
         print("ERROR\tINVALID-RRSIG\n")
+    else:
+        print("ERROR\tNONE\n")
 
     if has_error is True:
         exit()
