@@ -1,3 +1,4 @@
+REMOVE FIRST 00 IN NAME_BIN FOR DS RECORDS
 1 Replace name for every a record
 2 put in right order (find out)
 3 remember to replace TTL to the original TTL
