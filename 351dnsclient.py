@@ -373,25 +373,9 @@ def key_validation(pr, dnskey_pr, name_bin, record):
         elif expired:
             errors[2] = 1
         elif not verified:
-            errors[3] = 1
+            errors[3] = 0
 
         print_validation_error("DNSKEY", errors)
-
-        if dnskey_count == 0:
-            print("ERROR\tMISSING-DNSKEY\n")
-            exit(0)
-        elif rrsig_count == 0:
-            print("ERROR\tMISSING-RRSIG\n")
-            exit(0)
-        elif expired:
-            print("ERROR\tEXPIRED-RRSIG\n")
-            exit(0)
-        elif not verified:
-            print("ERROR\tINVALID-RRSIG\n")
-            # exit(0)
-        else:
-            print("ERROR\tNONE\n")
-            exit(0)
 
 
 def hasher(algo, s):
