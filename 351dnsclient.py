@@ -150,35 +150,38 @@ def main():
         usage()
         exit(0)
 
-    name_list = name.split(".")
-    name_bin = ""
+    name_chain = get_url_chain(name)
 
-    if args_len == 4 and name_list[0] == "www":
-        name_list.pop(0)
+    for nc in name_chain:
+        name_list = nc.split(".")
+        name_bin = ""
 
-    for n in name_list:
-        if n != "":
-            name_bin = name_bin + int_to_hex(len(n)) + str_to_hex(n)
+        if args_len == 4 and name_list[0] == "www":
+            name_list.pop(0)
 
-    name_bin = name_bin + Z_BYTE
+        for n in name_list:
+            if n != "":
+                name_bin = name_bin + int_to_hex(len(n)) + str_to_hex(n)
 
-    header = (H_1 + H_2 + H_3 + H_4 + H_5 + H_6)
-    question = name_bin + record_hex + Q_CLASS
+        name_bin = name_bin + Z_BYTE
 
-    add_rr = OPT_NAME + OPT_TYPE + OPT_CLASS + OPT_TTL + OPT_RDLEN
+        header = (H_1 + H_2 + H_3 + H_4 + H_5 + H_6)
+        question = name_bin + record_hex + Q_CLASS
 
-    msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
+        add_rr = OPT_NAME + OPT_TYPE + OPT_CLASS + OPT_TTL + OPT_RDLEN
 
-    response = send_query(server, msg, port, question, True)
-    parsed_response = parse_response(response[0], response[1])
+        msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
-    record_hex = Q_TYPE_HEX[4]
-    question = name_bin + record_hex + Q_CLASS
-    msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
-    dnskey_response = send_query(server, msg, port, question, False)
-    dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
+        response = send_query(server, msg, port, question, True)
+        parsed_response = parse_response(response[0], response[1])
 
-    key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
+        record_hex = Q_TYPE_HEX[4]
+        question = name_bin + record_hex + Q_CLASS
+        msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
+        dnskey_response = send_query(server, msg, port, question, False)
+        dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
+
+        key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
 
     print_results(name, record, parsed_response)
 
@@ -261,7 +264,8 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 rdata = f + p + a + pk
                 # make the digest and store it
                 d = name_bin + rdata
-                dnskey_digest.append(hasher(r['algorithm'], d))
+                dnskey_digest.append(hasher("5", d))
+                dnskey_digest.append(hasher("8", d))
 
         for r in pr:
             if r['record_type'] == 'RRSIG':
@@ -1055,6 +1059,7 @@ def print_err(e):
     :return: None
     """
     print("ERROR\t" + e)
+    exit()
 
 
 def usage():
