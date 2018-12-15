@@ -151,6 +151,7 @@ def main():
         exit(0)
 
     name_chain = get_url_chain(name)
+    should_dump = True
 
     for nc in name_chain:
         name_list = nc.split(".")
@@ -172,13 +173,14 @@ def main():
 
         msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
 
-        response = send_query(server, msg, port, question, True)
+        response = send_query(server, msg, port, question, should_dump)
+        should_dump = False
         parsed_response = parse_response(response[0], response[1])
 
         record_hex = Q_TYPE_HEX[4]
         question = name_bin + record_hex + Q_CLASS
         msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
-        dnskey_response = send_query(server, msg, port, question, False)
+        dnskey_response = send_query(server, msg, port, question, should_dump)
         dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
 
         key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
