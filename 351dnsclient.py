@@ -329,19 +329,6 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                     addr = addr + int_to_hex(int(x))
                 rr = name_bin + t + c + ttl + dl + addr
 
-        errors = [0, 0, 0, 0]
-
-        if a_count == 0:
-            errors[0] = 1
-        elif rrsig_count == 0:
-            errors[1] = 1
-        elif expired:
-            errors[2] = 1
-        elif not verified:
-            errors[3] = 1
-
-        print_validation_error("A", errors)
-
         data = rdata + rr
         pk = ''
         for r in dnskey_pr:
@@ -357,10 +344,20 @@ def key_validation(pr, dnskey_pr, name_bin, record):
         digest.update(d)
         s = binascii.unhexlify(sig)
         if signer.verify(digest, s):
-            print("A RECORD VERIFIED")
-            return True
-        else:
-            return False
+            verified = True
+
+        errors = [0, 0, 0, 0]
+
+        if a_count == 0:
+            errors[0] = 1
+        elif rrsig_count == 0:
+            errors[1] = 1
+        elif expired:
+            errors[2] = 1
+        elif not verified:
+            errors[3] = 1
+
+        print_validation_error("A", errors)
 
     elif record == "DNSKEY":
         for r in pr:
