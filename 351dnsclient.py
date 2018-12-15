@@ -177,15 +177,16 @@ def main():
         should_dump = False
         parsed_response = parse_response(response[0], response[1])
 
-        record_hex = Q_TYPE_HEX[4]
-        question = name_bin + record_hex + Q_CLASS
+        record_hex_2 = Q_TYPE_HEX[4]
+        question = name_bin + record_hex_2 + Q_CLASS
         msg = binascii.unhexlify((header + question + add_rr).replace("\n", ""))
         dnskey_response = send_query(server, msg, port, question, should_dump)
         dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
 
-        key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
+        if nc != ".":
+            key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
 
-    print_results(name, record, parsed_response)
+        print_results(nc, record, parsed_response)
 
 
 def send_query(server, msg, port, question, dump):
@@ -523,6 +524,10 @@ def parse_response(q, r):
         ans_type = hex_str[ans_index + 4:ans_index + 8].upper()
         rd_index = ans_index + ANS_OFFSET
         start_index = rd_index + 4
+
+        if hex_str[rd_index:start_index] == "":
+            continue
+
         ans_len = int(hex_str[rd_index:start_index], 16)
 
         if ans_type in Q_TYPE_HEX:
@@ -785,14 +790,20 @@ def get_name_hex_and_next_index(bin_str):
     keep_going = True
     hex_str = ""
 
+    if word_len == 0:
+        return [".", final_index]
+
     while keep_going:
         for i in range(start_index, final_index, 8):
-            next_hex = str(hex(int(bin_str[i:i + 8], 2))[2:])
+            this_bin = bin_str[i:i + 8]
 
-            if len(next_hex) == 1:
-                next_hex = "0" + next_hex
+            if this_bin != "":
+                next_hex = str(hex(int(this_bin, 2))[2:])
 
-            hex_str = hex_str + chr(int(next_hex, 16))
+                if len(next_hex) == 1:
+                    next_hex = "0" + next_hex
+
+                hex_str = hex_str + chr(int(next_hex, 16))
 
         next_bin = bin_str[final_index:final_index + 8]
 
