@@ -178,7 +178,7 @@ def main():
     dnskey_response = send_query(server, msg, port, question, False)
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
 
-    # key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
+    key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
 
     print_results(name, record, parsed_response)
 
@@ -324,11 +324,12 @@ def key_validation(pr, dnskey_pr, name_bin, record):
             if r['record_type'] == "DNSKEY":
                 pk = r['public_key'].replace(" ", "")
         data = rdata + rr
-        mod_ex = get_key_exponent_and_key(pk)
-        mod = int(mod_ex[0], 16)
-        ex = int(mod_ex[1], 16)
-        l = [mod, ex]
-        rsakey = RSA.construct(l)
+        # mod_ex = get_key_exponent_and_key(pk)
+        # mod = int(mod_ex[0], 16)
+        # ex = int(mod_ex[1], 16)
+        # l = [mod, ex]
+        q = binascii.unhexlify(pk)
+        rsakey = RSA.importKey(q)
         signer = PKCS1_v1_5.new(rsakey)
         digest = SHA256.new()
         digest.update(b64decode(data))
