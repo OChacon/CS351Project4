@@ -259,7 +259,7 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 rrsig_count = rrsig_count + 1
                 # Check the sig_inc and sig_exp to make sure it's still valid
                 cur_time = time.time()
-                if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
+                if int(r['sig_inc'], 16) < cur_time < int(r['sig_exp'], 16):
                     expired = False
 
         # check the hash and compare to all the DS record's digest
@@ -271,21 +271,18 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                     if e == d:
                         verified = True
 
+        errors = [0, 0, 0, 0]
+
         if ds_count == 0:
-            print("ERROR\tMISSING-DS\n")
-            exit(0)
+            errors[0] = 1
         elif rrsig_count == 0:
-            print("ERROR\tMISSING-RRSIG\n")
-            exit(0)
+            errors[1] = 1
         elif expired:
-            print("ERROR\tEXPIRED-RRSIG\n")
-            exit(0)
+            errors[2] = 1
         elif not verified:
-            print("ERROR\tINVALID-RRSIG\n")
-            # exit(0)
-        else:
-            print("ERROR\tNONE\n")
-            exit(0)
+            errors[3] = 1
+
+        print_validation_error("DS", errors)
 
     elif record == "A":
         rdata = ''
@@ -294,6 +291,7 @@ def key_validation(pr, dnskey_pr, name_bin, record):
         sig = ''
         for r in pr:
             if r['record_type'] == "RRSIG":
+                rrsig_count = rrsig_count + 1
                 # Build the rdata
                 tc = r['type_covered']
                 a = r['algorithm']
@@ -304,10 +302,14 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 kt = r['key_tag']
                 sig = r['signature'].replace(" ", "")
                 rdata = tc + a + l + ottl + sig_exp + sig_inc + kt + name_bin
+                cur_time = time.time()
+                if int(r['sig_inc'], 16) < cur_time < int(r['sig_exp'], 16):
+                    expired = False
 
         for r in pr:
             # Build RR
             if r['record_type'] == "A":
+                a_count = a_count + 1
                 t = r['r_t']
                 c = r['class']
                 ttl = ottl
@@ -317,6 +319,19 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 for x in a:
                     addr = addr + int_to_hex(int(x))
                 rr = name_bin + t + c + ttl + dl + addr
+
+        errors = [0, 0, 0, 0]
+
+        if a_count == 0:
+            errors[0] = 1
+        elif rrsig_count == 0:
+            errors[1] = 1
+        elif expired:
+            errors[2] = 1
+        elif not verified:
+            errors[3] = 1
+
+        print_validation_error("A", errors)
 
         data = rdata + rr
         pk = ''
@@ -346,8 +361,21 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 rrsig_count = rrsig_count + 1
                 # Check the sig_inc and sig_exp to make sure it's still valid
                 cur_time = time.time()
-                if int(r['sig_inc']) < cur_time < int(r['sig_exp']):
+                if int(r['sig_inc'], 16) < cur_time < int(r['sig_exp'], 16):
                     expired = False
+
+        errors = [0, 0, 0, 0]
+
+        if dnskey_count == 0:
+            errors[0] = 1
+        elif rrsig_count == 0:
+            errors[1] = 1
+        elif expired:
+            errors[2] = 1
+        elif not verified:
+            errors[3] = 1
+
+        print_validation_error("DNSKEY", errors)
 
         if dnskey_count == 0:
             print("ERROR\tMISSING-DNSKEY\n")
@@ -995,6 +1023,26 @@ def print_digest_or_base64(strng, indent):
             print(indent + stripped_string[length - 44:] + " )")
         else:
             print(indent + stripped_string[44:] + " )")
+
+
+def print_validation_error(r_type, e_list):
+    has_error = False
+
+    if e_list[0] == 1:
+        has_error = True
+        print("ERROR\tMISSING-" + r_type + "\n")
+    elif e_list[1] == 1:
+        has_error = True
+        print("ERROR\tMISSING-RRSIG\n")
+    elif e_list[2] == 1:
+        has_error = True
+        print("ERROR\tEXPIRED-RRSIG\n")
+    elif e_list[3] == 1:
+        has_error = True
+        print("ERROR\tINVALID-RRSIG\n")
+
+    if has_error is True:
+        exit()
 
 
 def print_err(e):
