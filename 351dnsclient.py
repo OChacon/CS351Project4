@@ -13,10 +13,10 @@ import select
 import math
 import base64
 import hashlib
-# from Crypto.PublicKey import RSA
-# from Crypto.Signature import PKCS1_v1_5
-# from Crypto.Hash import SHA256
-# from base64 import b64decode
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Signature import PKCS1_v1_5
+from Cryptodome.Hash import SHA256
+from base64 import b64decode
 import time
 
 
@@ -291,6 +291,7 @@ def key_validation(pr, dnskey_pr, name_bin, record):
         rdata = ''
         rr = ''
         ottl = ''
+        sig = ''
         for r in pr:
             if r['record_type'] == "RRSIG":
                 # Build the rdata
@@ -301,6 +302,7 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                 sig_exp = r['sig_exp']
                 sig_inc = r['sig_inc']
                 kt = r['key_tag']
+                sig = r['signature'].replace(" ", "")
                 rdata = tc + a + l + ottl + sig_exp + sig_inc + kt + name_bin
 
         for r in pr:
@@ -316,8 +318,23 @@ def key_validation(pr, dnskey_pr, name_bin, record):
                     addr = addr + int_to_hex(int(x))
                 rr = name_bin + t + c + ttl + dl + addr
 
-        digest = rdata + rr
-        # get the sig verifier function, feed it the digest and the rrsig's sig
+        data = rdata + rr
+        pk = ''
+        for r in dnskey_pr:
+            if r['record_type'] == "DNSKEY":
+                pk = r['public_key'].replace(" ", "")
+        data = rdata + rr
+        mod_ex = get_key_exponent_and_key(pk)
+        mod = int(mod_ex[0], 16)
+        ex = int(mod_ex[1], 16)
+        l = [mod, ex]
+        rsakey = RSA.construct(l)
+        signer = PKCS1_v1_5.new(rsakey)
+        digest = SHA256.new()
+        digest.update(b64decode(data))
+        if signer.verify(digest, b64decode(sig)):
+            return True
+        return False
 
     elif record == "DNSKEY":
         for r in pr:
