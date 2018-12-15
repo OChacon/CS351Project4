@@ -178,7 +178,7 @@ def main():
     dnskey_response = send_query(server, msg, port, question, False)
     dnskey_parsed_response = parse_response(dnskey_response[0], dnskey_response[1])
 
-    key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
+    # key_validation(parsed_response, dnskey_parsed_response, name_bin, record)
 
     print_results(name, record, parsed_response)
 
@@ -452,10 +452,6 @@ def parse_response(q, r):
     q_len = len(q)
     head_bin_list = []
 
-    # dump_hex(hex_str[1:])
-
-    # print("hex str: " + hex_str)
-
     for i in range(5, HEAD_LEN + 1, 4):
         head_bin_list.append(hex_to_bin_list(hex_str[i:i + 4]))
 
@@ -487,15 +483,14 @@ def parse_response(q, r):
 
         if ans_type in Q_TYPE_HEX:
             record_type = Q_TYPE_STRING[Q_TYPE_HEX.index(ans_type)]
-            # print("Resource record type " + record_type + "\t")
         else:
             record_type = ""
-            # print("Resource record type hex: " + ans_type)
 
         end_index = start_index + 2 * ans_len
         ans_hex = hex_str[start_index:end_index]
         ans_bin = hex_to_bin_list(ans_hex)
         ans_as_bin_str = arr_to_str(ans_bin)
+        rdata_for_hash = hex_str[ans_index:end_index].replace(" ", "")
 
         if ans_type == Q_TYPE_HEX[0]:
             # A Record
@@ -534,19 +529,17 @@ def parse_response(q, r):
                 continue
 
             digest_hex_str = bin_str_to_hex_str(digest_bin)
+            digest_as_int = int(digest_bin, 2)
 
             parsed_response.append({
                 "record_type": record_type,
                 "key_tag": str(key_tag),
                 "algorithm": str(alg),
                 "digest_type": str(digest_type),
-                "digest": digest_hex_str
+                "digest": digest_hex_str,
+                "digest_as_int": digest_as_int,
+                "rdata_for_hash": rdata_for_hash
             })
-
-            # print("Key tag: " + str(key_tag))
-            # print("Algorithm: " + str(alg))
-            # print("Digest type: " + str(digest_type))
-            # print("Digest: " + digest_hex_str)
         elif ans_type == Q_TYPE_HEX[2]:
             # RRSIG Record
             type_covered = bin_str_to_hex_str(ans_as_bin_str[0:16]).replace(" ", "")
@@ -573,18 +566,9 @@ def parse_response(q, r):
                 "sig_name": sig_name,
                 "signature": sig,
                 "sig_as_base64": sig_as_base64,
-                "sig_as_int": sig_as_int
+                "sig_as_int": sig_as_int,
+                "rdata_for_hash": rdata_for_hash
             })
-
-            # print("Type covered: " + str(type_covered))
-            # print("Algorithm: " + str(alg))
-            # print("Labels: " + str(labels))
-            # print("TTL: " + str(ttl))
-            # print("Signature expiration: " + str(sig_exp))
-            # print("Signature inception: " + str(sig_inc))
-            # print("Key tag: " + str(key_tag))
-            # print("Signature name: " + sig_name)
-            # print("Signature: " + sig)
         elif ans_type == Q_TYPE_HEX[3]:
             # NSEC Record
             [next_domain, type_bit_maps_index] = get_name_hex_and_next_index(ans_as_bin_str)
@@ -595,9 +579,6 @@ def parse_response(q, r):
                 "next_domain": next_domain,
                 "type_bit_maps": type_bit_maps
             })
-
-            # print("Next domain: " + next_domain)
-            # print("Type bit maps: " + type_bit_maps)
         elif ans_type == Q_TYPE_HEX[4]:
             # DNSKEY Record
             flags = ans_as_bin_str[0:16]
@@ -605,14 +586,14 @@ def parse_response(q, r):
             alg = int(ans_as_bin_str[24:32], 2)
             alg_name = DNSKEY_ALGS[alg]
             pub_key = bin_str_to_hex_str(ans_as_bin_str[32:])
-            key_type_num = 257
+            pub_key_as_base64 = str(base64.b64encode(bytes(pub_key, "utf-8")))[2:-1]
+            key_type_num = int(flags, 2)
             key_type_str = "KSK"
 
-            if flags[7] == "1":
-                key_type_num = 256
+            if key_type_num == 256:
                 key_type_str = "ZSK"
 
-            [key_exponent, key_int] = get_key_exponent_and_key(pub_key.replace(" ", ""))
+            [key_exponent, key_mod, key_test] = get_key_exponent_and_key(pub_key.replace(" ", ""))
 
             parsed_response.append({
                 "record_type": record_type,
@@ -623,14 +604,11 @@ def parse_response(q, r):
                 "algorithm": str(alg),
                 "alg_name": alg_name,
                 "public_key": str(pub_key),
-                "key_exponent": str(key_exponent),
-                "key_int": str(key_int)
+                "pub_key_as_base64": pub_key_as_base64,
+                "key_exponent": key_exponent,
+                "key_mod": key_mod,
+                "key_mod_test": key_test
             })
-
-            # print("Flags: " + flags)
-            # print("Protocol: " + str(protocol))
-            # print("Algorithm: " + str(alg))
-            # print("Public key: " + str(pub_key))
         elif ans_type == Q_TYPE_HEX[5]:
             # NSEC3 Record
             hash_alg = int(ans_as_bin_str[0:8], 2)
@@ -654,21 +632,6 @@ def parse_response(q, r):
                 "type_bit_maps": type_bit_maps
             })
 
-            # print("Hash Algorithm: " + str(hash_alg))
-            # print("Flags: " + flags)
-            # print("Iterations: " + str(iterations))
-            # print("Salt: " + salt)
-            # print("Next hash owner name: " + next_hash_owner_name)
-            # print("Type bit maps: " + type_bit_maps)
-        else:
-            pass
-            # print("Unrecognized response type.")
-            # print("Binary dump: ")
-            # print(ans_as_bin_str)
-            # print("Hex dump: ")
-            # print(bin_str_to_hex_str(ans_as_bin_str))
-
-        # print()
         ans_index = end_index
 
     return parsed_response
@@ -785,7 +748,6 @@ def get_name_hex_and_next_index(bin_str):
             if len(next_hex) == 1:
                 next_hex = "0" + next_hex
 
-            # hex_str = hex_str + next_hex + " "
             hex_str = hex_str + chr(int(next_hex, 16))
 
         next_bin = bin_str[final_index:final_index + 8]
@@ -807,13 +769,24 @@ def get_name_hex_and_next_index(bin_str):
 
 
 def get_key_exponent_and_key(pk):
-    key_tag = int(pk[2:8], 16)
+    """
+    Gets key exponent and modulus
+    :param pk: string
+    :return: exponent and modulus
+    """
+    exp = int(pk[2:8], 16)
     k = str_to_int(pk[8:])
+    k_int = int(pk[8:], 16)
 
-    return [key_tag, k]
+    return [exp, k, k_int]
 
 
 def str_to_int(s):
+    """
+    Translates string to int
+    :param s: string
+    :return: int
+    """
     new_int = 0
 
     for c in s:
@@ -872,6 +845,26 @@ def get_name_by_offset(hex_str, offset):
     return name
 
 
+def get_url_chain(url):
+    chain = [url]
+    url_parts = url.split(".")
+    url_len = len(url_parts)
+
+    for i in range(0, url_len):
+        url_parts.pop(0)
+        next_in_chain = ""
+
+        for p in url_parts:
+                next_in_chain = next_in_chain + "." + p
+
+        if next_in_chain != '' and next_in_chain != chain[0]:
+            chain.append(next_in_chain)
+
+    chain.append(".")
+
+    return chain
+
+
 def is_dns_response(s):
     """
     Checks whether DNS response has valid ID and has response type flag set
@@ -889,6 +882,19 @@ def is_dns_response(s):
 
 
 def print_results(url, q_type, results):
+    """
+    Prints results
+    :param url: queried url
+    :param q_type: query type
+    :param results: results
+    :return: None
+    """
+    url_tab_count = int(len(url) / 4)
+    sig_indent = "\t\t\t"
+
+    for i in range(0, url_tab_count):
+        sig_indent = sig_indent + "\t"
+
     url_str = url + "\t\t"
 
     if q_type == Q_TYPE_VALID_INPUTS[0]:
@@ -899,10 +905,10 @@ def print_results(url, q_type, results):
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG ", end="")
-                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
-                print(r["labels"] + " ", end="")
-                print(r["ttl"] + " (")
-                print_digest_or_base64(r["sig_as_base64"])
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"], 16))] + " ", end="")
+                print(str(int(r["labels"], 16)) + " ", end="")
+                print(str(int(r["ttl"], 16)) + " (")
+                print_digest_or_base64(r["sig_as_base64"], sig_indent)
     elif q_type == Q_TYPE_VALID_INPUTS[1]:
         for r in results:
             if r["record_type"] == Q_TYPE_STRING[1]:
@@ -911,21 +917,20 @@ def print_results(url, q_type, results):
                 print(r["key_tag"] + " ", end="")
                 print(r["algorithm"] + " ", end="")
                 print(r["digest_type"] + " (")
-                print_digest_or_base64(r["digest"])
+                print_digest_or_base64(r["digest"], sig_indent)
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DS ", end="")
-                print(r["algorithm"] + " ", end="")
-                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
-                print(r["labels"] + " ", end="")
-                print(r["ttl"] + " (")
-                print("\t\t\t\t\t", end="")
-                print(r["sig_exp"] + " ", end="")
-                print(r["sig_inc"] + " ", end="")
-                print(r["key_tag"] + " ", end="")
+                print(str(int(r["algorithm"], 16)) + " ", end="")
+                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"], 16))] + " ", end="")
+                print(str(int(r["labels"], 16)) + " ", end="")
+                print(str(int(r["ttl"], 16)) + " (")
+                print(sig_indent, end="")
+                print(str(int(r["sig_exp"], 16)) + " ", end="")
+                print(str(int(r["sig_inc"], 16)) + " ", end="")
+                print(str(int(r["key_tag"], 16)) + " ", end="")
                 print(r["sig_name"] + " ")
-                print_digest_or_base64(r["sig_as_base64"])
-                print("Sig as int: " + str(r["sig_as_int"]))
+                print_digest_or_base64(r["sig_as_base64"], sig_indent)
     elif q_type == Q_TYPE_VALID_INPUTS[2]:
         for r in results:
             if r["record_type"] == Q_TYPE_STRING[4]:
@@ -934,40 +939,43 @@ def print_results(url, q_type, results):
                 print(r["key_type_num"] + " ", end="")
                 print(r["protocol"] + " ", end="")
                 print(r["algorithm"] + " (")
-                print_digest_or_base64(r["public_key"])
-                print("\t\t\t\t\t; ", end="")
+                print_digest_or_base64(r["public_key"], sig_indent)
+                print(sig_indent + "; ", end="")
                 print(r["key_type_str"] + "; ", end="")
-                print("alg = " + r["alg_name"] + "; ", end=""),
-                print("DNSKEY as int: " + str(r["key_int"]))
+                print("alg = " + r["alg_name"] + "; ")
             elif r["record_type"] == Q_TYPE_STRING[2]:
                 print(url_str, end="")
                 print("IN RRSIG DNSKEY ", end="")
-                print(r["algorithm"] + " ", end="")
-                print(Q_TYPE_STRING[ANS_TYPE_INT.index(int(r["type_covered"]))] + " ", end="")
-                print(r["labels"] + " ", end="")
-                print(r["ttl"] + " (")
-                print("\t\t\t\t\t", end="")
-                print(r["sig_exp"] + " ", end="")
-                print(r["sig_inc"] + " ", end="")
-                print(r["key_tag"] + " ", end="")
+                print(str(int(r["algorithm"], 16)) + " ", end="")
+                print(str(int(r["labels"], 16)) + " ", end="")
+                print(str(int(r["ttl"], 16)) + " (")
+                print(sig_indent, end="")
+                print(str(int(r["sig_exp"], 16)) + " ", end="")
+                print(str(int(r["sig_inc"], 16)) + " ", end="")
+                print(str(int(r["key_tag"], 16)) + " ", end="")
                 print(r["sig_name"] + " ")
-                print_digest_or_base64(r["sig_as_base64"])
+                print_digest_or_base64(r["sig_as_base64"], sig_indent)
 
 
-def print_digest_or_base64(strng):
+def print_digest_or_base64(strng, indent):
+    """
+    Prints digest or base64 string
+    :param strng: string to print
+    :return: None
+    """
     stripped_string = strng.replace(" ", "")
     length = len(stripped_string)
 
     if length < 45:
-        print("\t\t\t\t\t" + stripped_string + " )")
+        print(indent + stripped_string + " )")
     else:
-        print("\t\t\t\t\t" + stripped_string[:44])
+        print(indent + stripped_string[:44])
 
         if length > 88:
-            print("\t\t\t\t\t[ ... ]")
-            print("\t\t\t\t\t" + stripped_string[length - 44:] + " )")
+            print(indent + "[ ... ]")
+            print(indent + stripped_string[length - 44:] + " )")
         else:
-            print("\t\t\t\t\t" + stripped_string[44:] + " )")
+            print(indent + stripped_string[44:] + " )")
 
 
 def print_err(e):
